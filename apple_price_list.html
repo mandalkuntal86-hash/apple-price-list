@@ -2055,12 +2055,6 @@ function styleSheet(ws, rowCount) {
 }
 
 // ── INIT FUNCTIONS ────────────────────────────────────────────────
-function renderLoading() {
-  const el = document.getElementById('contentArea');
-  if (!el) return;
-  el.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;gap:16px;color:var(--text3)"><div style="width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite"></div><div style="font-size:14px">Loading from database...</div></div>';
-}
-
 function initRender() {
   renderTabs();
   renderSubfilters();
@@ -2298,13 +2292,12 @@ function fbStartHeartbeat() {
 
 // Auto-init on page load
 window.addEventListener('load', () => {
+  initRender(); // Render instantly from local data
   if (fbIsConfigured()) {
-    renderLoading();   // Show spinner while Firebase loads
-    fbInit();          // Firebase will call initRender() after loading data
+    fbInit();          // Firebase silently updates in background
     fbStartHeartbeat();
   } else {
     fbUpdateDot('off');
-    initRender();      // No Firebase - render local data immediately
   }
 });
 
