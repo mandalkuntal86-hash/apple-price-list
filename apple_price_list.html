@@ -2071,24 +2071,31 @@ let _fbHeartbeat = null;
 // Unique ID for this device/tab - to avoid echo from own saves
 const _fbDeviceId = Math.random().toString(36).slice(2);
 
+async function fbDoSave() {
+  if (!_fbDb || !fbIsConfigured()) {
+    console.warn('fbDoSave: no db or config');
+    return;
+  }
+  try {
+    _fbLastSaveTime = Date.now();
+    fbUpdateDot('saving');
+    // Deep clean - replace undefined with null so Firestore accepts it
+    const clean = JSON.parse(JSON.stringify(data, (k, v) => v === undefined ? null : v));
+    clean._savedBy = _fbDeviceId;
+    clean._savedAt = Date.now();
+    await _fbDb.collection('pricelist').doc('main').set(clean);
+    fbUpdateDot('saved');
+    setTimeout(() => fbUpdateDot('connected'), 2000);
+  } catch(e) {
+    fbUpdateDot('error');
+    console.error('Save failed:', e.message);
+    showToast('❌ Save failed: ' + e.message);
+  }
+}
+
 function fbAutoSave() {
   clearTimeout(_fbAutoSaveTimer);
-  _fbAutoSaveTimer = setTimeout(async () => {
-    if (!_fbDb || !fbIsConfigured()) return;
-    try {
-      _fbLastSaveTime = Date.now();
-      fbUpdateDot('saving');
-      const clean = JSON.parse(JSON.stringify(data));
-      clean._savedBy = _fbDeviceId;
-      clean._savedAt = Date.now();
-      await _fbDb.collection('pricelist').doc('main').set(clean);
-      fbUpdateDot('saved');
-      setTimeout(() => fbUpdateDot('connected'), 2000);
-    } catch(e) {
-      fbUpdateDot('error');
-      console.error('Auto-save failed:', e.message);
-    }
-  }, 800);
+  _fbAutoSaveTimer = setTimeout(fbDoSave, 800);
 }
 
 function fbGetConfig() {
@@ -2182,14 +2189,8 @@ async function fbSaveNow() {
   if (!_fbDb) { fbInit(); setTimeout(fbSaveNow, 1500); return; }
   fbUpdateDot('saving');
   try {
-    _fbLastSaveTime = Date.now();
-    const clean = JSON.parse(JSON.stringify(data));
-    clean._savedBy = _fbDeviceId;
-    clean._savedAt = Date.now();
-    await _fbDb.collection('pricelist').doc('main').set(clean);
-    fbUpdateDot('saved');
+    await fbDoSave();
     showToast('☁️ Saved to Firebase!');
-    setTimeout(() => fbUpdateDot('connected'), 3000);
   } catch(e) {
     fbUpdateDot('error');
     alert('Save failed: ' + e.message + '\n\nMake sure Firestore is enabled in your Firebase console.');
