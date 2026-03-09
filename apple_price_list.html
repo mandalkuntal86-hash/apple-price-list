@@ -2065,9 +2065,11 @@ let _fbDb  = null;
 let _fbUnsub = null;
 let _fbAutoSaveTimer = null;
 let _fbIgnoreNextSnapshot = false;
-let _fbLastSaveTime = 0;       // timestamp of last save we did
-let _fbReconnectTimer = null;  // reconnect retry timer
-let _fbHeartbeat = null;       // periodic sync check
+let _fbLastSaveTime = 0;
+let _fbReconnectTimer = null;
+let _fbHeartbeat = null;
+// Unique ID for this device/tab - to avoid echo from own saves
+const _fbDeviceId = Math.random().toString(36).slice(2);
 
 function fbAutoSave() {
   clearTimeout(_fbAutoSaveTimer);
@@ -2077,6 +2079,8 @@ function fbAutoSave() {
       _fbLastSaveTime = Date.now();
       fbUpdateDot('saving');
       const clean = JSON.parse(JSON.stringify(data));
+      clean._savedBy = _fbDeviceId;
+      clean._savedAt = Date.now();
       await _fbDb.collection('pricelist').doc('main').set(clean);
       fbUpdateDot('saved');
       setTimeout(() => fbUpdateDot('connected'), 2000);
@@ -2139,8 +2143,8 @@ function fbInit() {
       if (snap.exists) {
         const d = snap.data();
         if (d && d.IPHONE && d.IPHONE.length) {
-          Object.assign(data, d);
-          // Fix stock:0 from old saves — treat 0 as null (not set)
+          const d2 = {...d}; delete d2._savedBy; delete d2._savedAt;
+          Object.assign(data, d2);
           ['IPHONE','IPAD','MACBOOK'].forEach(cat => {
             (data[cat]||[]).forEach(item => { if (item.stock === 0) item.stock = null; });
           });
@@ -2151,21 +2155,21 @@ function fbInit() {
     }).catch(e => console.error('Initial load failed:', e));
     // Live listener
     _fbUnsub = _fbDb.collection('pricelist').doc('main').onSnapshot(snap => {
-      // Skip if this snapshot arrived within 4s of our own save (echo prevention)
-      if (Date.now() - _fbLastSaveTime < 4000) return;
-      if (snap.exists) {
-        const d = snap.data();
-        if (d && d.IPHONE && d.IPHONE.length) {
-          Object.assign(data, d);
-          // Fix stock:0 from old saves — treat 0 as null (not set)
-          ['IPHONE','IPAD','MACBOOK'].forEach(cat => {
-            (data[cat]||[]).forEach(item => { if (item.stock === 0) item.stock = null; });
-          });
-          renderTabs(); renderSubfilters(); renderContent();
-          fbUpdateDot('connected');
-          showToast('📲 Synced from another device');
-        }
-      }
+      if (!snap.exists) return;
+      const d = snap.data();
+      if (!d || !d.IPHONE) return;
+      // Skip echo — this save came from our own device
+      if (d._savedBy === _fbDeviceId) return;
+      // Apply remote data
+      const clean = {...d};
+      delete clean._savedBy; delete clean._savedAt;
+      Object.assign(data, clean);
+      ['IPHONE','IPAD','MACBOOK'].forEach(cat => {
+        (data[cat]||[]).forEach(item => { if (item.stock === 0) item.stock = null; });
+      });
+      renderTabs(); renderSubfilters(); renderContent();
+      fbUpdateDot('connected');
+      showToast('📲 Synced from another device');
     }, err => { fbUpdateDot('error'); console.error('Snapshot error:', err); });
   } catch(e) {
     fbUpdateDot('error');
@@ -2180,6 +2184,8 @@ async function fbSaveNow() {
   try {
     _fbLastSaveTime = Date.now();
     const clean = JSON.parse(JSON.stringify(data));
+    clean._savedBy = _fbDeviceId;
+    clean._savedAt = Date.now();
     await _fbDb.collection('pricelist').doc('main').set(clean);
     fbUpdateDot('saved');
     showToast('☁️ Saved to Firebase!');
@@ -2255,7 +2261,8 @@ function fbStartHeartbeat() {
             const remoteLen = (d.IPHONE||[]).length + (d.IPAD||[]).length + (d.MACBOOK||[]).length;
             const localLen  = data.IPHONE.length + data.IPAD.length + data.MACBOOK.length;
             if (remoteLen !== localLen) {
-              Object.assign(data, d);
+              const dh = {...d}; delete dh._savedBy; delete dh._savedAt;
+              Object.assign(data, dh);
               ['IPHONE','IPAD','MACBOOK'].forEach(cat => {
                 (data[cat]||[]).forEach(item => { if (item.stock === 0) item.stock = null; });
               });
@@ -2282,7 +2289,8 @@ document.addEventListener('visibilitychange', () => {
       if (snap.exists && Date.now() - _fbLastSaveTime > 3000) {
         const d = snap.data();
         if (d && d.IPHONE) {
-          Object.assign(data, d);
+          const dv = {...d}; delete dv._savedBy; delete dv._savedAt;
+          Object.assign(data, dv);
           ['IPHONE','IPAD','MACBOOK'].forEach(cat => {
             (data[cat]||[]).forEach(item => { if (item.stock === 0) item.stock = null; });
           });
