@@ -1723,9 +1723,9 @@ function editProduct(cat, idx) {
   onCategoryChange();
   document.getElementById('f_model').value   = item.model || '';
   document.getElementById('f_subcat').value  = item.subcat || '';
-  document.getElementById('f_stock').value   = item.stock !== undefined ? item.stock : '';
+  document.getElementById('f_stock').value   = (item.stock !== undefined && item.stock !== null) ? item.stock : '';
   document.getElementById('f_mrp').value     = item.mrp || '';
-  document.getElementById('f_stock').value   = item.stock !== undefined ? item.stock : '';
+  document.getElementById('f_stock').value   = (item.stock !== undefined && item.stock !== null) ? item.stock : '';
   document.getElementById('f_qty').value     = item.qty !== undefined ? item.qty : '';
   document.getElementById('f_mrp').closest('.form-row').classList.add('mrp-struck');
   document.getElementById('f_nlc').value     = item.nlc || '';
@@ -1825,11 +1825,12 @@ function submitProduct() {
   const discFull = hasFull ? (parseInt(document.getElementById('f_discFull').value) || 0) : 0;
   const discEMI  = hasEMI  ? (parseInt(document.getElementById('f_discEMI').value)  || 0) : 0;
 
-  const stock = parseInt(document.getElementById('f_stock').value) || 0;
+  const stockVal = document.getElementById('f_stock').value.trim();
+  const stock = stockVal !== '' ? (parseInt(stockVal) || 0) : null;
   const newItem = {
     model,
     subcat: document.getElementById('f_subcat').value.trim() || 'Custom',
-    stock,
+    ...(stock !== null ? {stock} : {}),
     mrp,
     nlc,
     discFull,
@@ -2064,13 +2065,16 @@ let _fbDb  = null;
 let _fbUnsub = null;
 let _fbAutoSaveTimer = null;
 let _fbIgnoreNextSnapshot = false;
+let _fbLastSaveTime = 0;       // timestamp of last save we did
+let _fbReconnectTimer = null;  // reconnect retry timer
+let _fbHeartbeat = null;       // periodic sync check
 
 function fbAutoSave() {
   clearTimeout(_fbAutoSaveTimer);
   _fbAutoSaveTimer = setTimeout(async () => {
     if (!_fbDb || !fbIsConfigured()) return;
     try {
-      _fbIgnoreNextSnapshot = true;
+      _fbLastSaveTime = Date.now();
       fbUpdateDot('saving');
       const clean = JSON.parse(JSON.stringify(data));
       await _fbDb.collection('pricelist').doc('main').set(clean);
@@ -2136,6 +2140,10 @@ function fbInit() {
         const d = snap.data();
         if (d && d.IPHONE && d.IPHONE.length) {
           Object.assign(data, d);
+          // Fix stock:0 from old saves — treat 0 as null (not set)
+          ['IPHONE','IPAD','MACBOOK'].forEach(cat => {
+            (data[cat]||[]).forEach(item => { if (item.stock === 0) item.stock = null; });
+          });
           renderTabs(); renderSubfilters(); renderContent();
           fbUpdateDot('connected');
         }
@@ -2143,14 +2151,16 @@ function fbInit() {
     }).catch(e => console.error('Initial load failed:', e));
     // Live listener
     _fbUnsub = _fbDb.collection('pricelist').doc('main').onSnapshot(snap => {
-      if (_fbIgnoreNextSnapshot) {
-        _fbIgnoreNextSnapshot = false;
-        return; // skip echo of our own save
-      }
+      // Skip if this snapshot arrived within 4s of our own save (echo prevention)
+      if (Date.now() - _fbLastSaveTime < 4000) return;
       if (snap.exists) {
         const d = snap.data();
         if (d && d.IPHONE && d.IPHONE.length) {
           Object.assign(data, d);
+          // Fix stock:0 from old saves — treat 0 as null (not set)
+          ['IPHONE','IPAD','MACBOOK'].forEach(cat => {
+            (data[cat]||[]).forEach(item => { if (item.stock === 0) item.stock = null; });
+          });
           renderTabs(); renderSubfilters(); renderContent();
           fbUpdateDot('connected');
           showToast('📲 Synced from another device');
@@ -2168,7 +2178,7 @@ async function fbSaveNow() {
   if (!_fbDb) { fbInit(); setTimeout(fbSaveNow, 1500); return; }
   fbUpdateDot('saving');
   try {
-    _fbIgnoreNextSnapshot = true;
+    _fbLastSaveTime = Date.now();
     const clean = JSON.parse(JSON.stringify(data));
     await _fbDb.collection('pricelist').doc('main').set(clean);
     fbUpdateDot('saved');
@@ -2176,7 +2186,6 @@ async function fbSaveNow() {
     setTimeout(() => fbUpdateDot('connected'), 3000);
   } catch(e) {
     fbUpdateDot('error');
-    _fbIgnoreNextSnapshot = false;
     alert('Save failed: ' + e.message + '\n\nMake sure Firestore is enabled in your Firebase console.');
   }
 }
@@ -2233,10 +2242,76 @@ function fbCopyLink() {
   });
 }
 
+function fbStartHeartbeat() {
+  clearInterval(_fbHeartbeat);
+  _fbHeartbeat = setInterval(() => {
+    // Re-fetch latest data every 30s as a safety net
+    if (_fbDb && fbIsConfigured()) {
+      _fbDb.collection('pricelist').doc('main').get().then(snap => {
+        if (snap.exists) {
+          const d = snap.data();
+          // Only update if remote data is different (check length as proxy)
+          if (d && d.IPHONE && Date.now() - _fbLastSaveTime > 5000) {
+            const remoteLen = (d.IPHONE||[]).length + (d.IPAD||[]).length + (d.MACBOOK||[]).length;
+            const localLen  = data.IPHONE.length + data.IPAD.length + data.MACBOOK.length;
+            if (remoteLen !== localLen) {
+              Object.assign(data, d);
+              ['IPHONE','IPAD','MACBOOK'].forEach(cat => {
+                (data[cat]||[]).forEach(item => { if (item.stock === 0) item.stock = null; });
+              });
+              renderTabs(); renderSubfilters(); renderContent();
+              showToast('🔄 Data refreshed');
+            }
+          }
+        }
+      }).catch(() => {});
+    }
+  }, 30000);
+}
+
 // Auto-init on page load
 window.addEventListener('load', () => {
-  if (fbIsConfigured()) fbInit();
+  if (fbIsConfigured()) { fbInit(); fbStartHeartbeat(); }
   else fbUpdateDot('off');
+});
+
+// Re-sync when tab becomes visible again (user switches back to app)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && _fbDb && fbIsConfigured()) {
+    _fbDb.collection('pricelist').doc('main').get().then(snap => {
+      if (snap.exists && Date.now() - _fbLastSaveTime > 3000) {
+        const d = snap.data();
+        if (d && d.IPHONE) {
+          Object.assign(data, d);
+          ['IPHONE','IPAD','MACBOOK'].forEach(cat => {
+            (data[cat]||[]).forEach(item => { if (item.stock === 0) item.stock = null; });
+          });
+          renderTabs(); renderSubfilters(); renderContent();
+        }
+      }
+    }).catch(() => {});
+  }
+});
+
+// Reconnect when coming back online
+window.addEventListener('online', () => {
+  if (fbIsConfigured()) {
+    showToast('🌐 Back online — syncing...');
+    setTimeout(() => {
+      if (!_fbDb) fbInit();
+      else {
+        // Re-attach listener
+        if (_fbUnsub) { _fbUnsub(); _fbUnsub = null; }
+        fbInit();
+      }
+      fbStartHeartbeat();
+    }, 1000);
+  }
+});
+
+window.addEventListener('offline', () => {
+  fbUpdateDot('error');
+  showToast('📵 Offline — changes saved locally');
 });
 </script>
 
