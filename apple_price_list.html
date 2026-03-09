@@ -1748,7 +1748,6 @@ function deleteProduct(cat, idx) {
   renderSubfilters();
   renderContent();
   showToast('Deleted: ' + item.model);
-  fbDoSave();
 }
 function closeModal() {
   document.getElementById('modalOverlay').classList.remove('open');
@@ -2044,6 +2043,9 @@ function initRender() {
   renderSubfilters();
   renderContent();
 }
+
+
+
 
 window.addEventListener('load', () => { initRender(); });
 
