@@ -771,6 +771,7 @@
     .grid { grid-template-columns: 1fr; }
     .form-grid-2 { grid-template-columns: 1fr; }
   }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   @media (max-width: 400px) {
     /* Very small phones — single column */
@@ -2167,16 +2168,11 @@ function fbInit() {
     _fbDb.collection('pricelist').doc('main').get().then(snap => {
       if (snap.exists) {
         const d = snap.data();
-        if (d && d.IPHONE && d.IPHONE.length) {
+        if (d && d.IPHONE) {
           const d2 = {...d}; delete d2._savedBy; delete d2._savedAt;
           normalizeData(d2);
           Object.assign(data, d2);
-          ['IPHONE','IPAD','MACBOOK'].forEach(cat => {
-            (data[cat]||[]).forEach(item => {
-              if (item.stock === 0 || item.stock === null) delete item.stock;
-            });
-          });
-          renderTabs(); renderSubfilters(); renderContent();
+          initRender();renderContent();
           fbUpdateDot('connected');
         }
       }
@@ -2296,8 +2292,13 @@ function fbStartHeartbeat() {
 
 // Auto-init on page load
 window.addEventListener('load', () => {
-  if (fbIsConfigured()) { fbInit(); fbStartHeartbeat(); }
-  else fbUpdateDot('off');
+  if (fbIsConfigured()) {
+    fbInit();
+    fbStartHeartbeat();
+  } else {
+    fbUpdateDot('off');
+    initRender(); // No Firebase - render local data
+  }
 });
 
 // Re-sync when tab becomes visible again (user switches back to app)
