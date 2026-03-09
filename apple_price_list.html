@@ -650,11 +650,6 @@
     white-space: nowrap;
   }
   .hdr-btn:hover { border-color: var(--text3); color: var(--text); background: var(--surface2); }
-
-  .hdr-btn-fb { color: #FFA500; border-color: rgba(255,165,0,0.3); background: rgba(255,165,0,0.07); gap: 7px; }
-  .hdr-btn-fb:hover { background: rgba(255,165,0,0.15); border-color: rgba(255,165,0,0.5); }
-  .hdr-btn-fb-cfg { padding: 7px 9px; color: var(--text3); }
-  .hdr-btn-fb-cfg:hover { color: var(--text); }
   .hdr-btn-green { color: var(--accent2); border-color: rgba(48,209,88,0.3); background: rgba(48,209,88,0.07); }
   .hdr-btn-green:hover { background: rgba(48,209,88,0.15); border-color: rgba(48,209,88,0.5); }
 
@@ -1003,6 +998,7 @@
     text-transform: uppercase;
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -1033,13 +1029,6 @@
         <input type="text" class="search-input" id="search" placeholder="Search models..." />
       </div>
       <div class="header-actions">
-        <button class="hdr-btn hdr-btn-fb" id="fbStatusBtn" onclick="fbSaveNow()" title="Firebase">
-          <span id="fbDot" style="width:8px;height:8px;border-radius:50%;background:#6e6e73;display:inline-block;flex-shrink:0"></span>
-          <span class="btn-label">Firebase</span>
-        </button>
-        <button class="hdr-btn hdr-btn-fb-cfg" onclick="openFbConfig()" title="Configure Firebase">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        </button>
         <button class="hdr-btn" onclick="restoreBackup()" title="Restore">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
           <span class="btn-label">Restore</span>
@@ -1219,9 +1208,7 @@
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
 <script>
 
 const fmt = n => '₹' + Number(n).toLocaleString('en-IN');
@@ -1864,7 +1851,6 @@ function submitProduct() {
     renderSubfilters();
     renderContent();
     showToast('Updated: ' + model);
-    fbDoSave();
   } else {
     data[cat].unshift(newItem);
     closeModal();
@@ -1874,7 +1860,6 @@ function submitProduct() {
     renderSubfilters();
     renderContent();
     showToast('Added: ' + model);
-    fbDoSave();
   }
 }
 
@@ -1986,8 +1971,7 @@ function restoreBackup() {
         renderSubfilters();
         renderContent();
         showToast('✓ Backup restored!');
-        fbDoSave();
-      } catch(err) {
+          } catch(err) {
         alert('Could not restore: ' + err.message);
       }
     };
@@ -2061,401 +2045,9 @@ function initRender() {
   renderContent();
 }
 
-// ── FIREBASE ────────────────────────────────────────────────────────────
-let _fbApp = null;
-let _fbDb  = null;
-let _fbUnsub = null;
-let _fbAutoSaveTimer = null;
-let _fbIgnoreNextSnapshot = false;
-let _fbLastSaveTime = 0;
-let _fbReconnectTimer = null;
-let _fbHeartbeat = null;
-// Unique ID for this device/tab - to avoid echo from own saves
-const _fbDeviceId = Math.random().toString(36).slice(2);
-
-async function fbDoSave() {
-  if (!_fbDb || !fbIsConfigured()) {
-    console.warn('fbDoSave: no db or config');
-    return;
-  }
-  try {
-    _fbLastSaveTime = Date.now();
-    fbUpdateDot('saving');
-    // Deep clean - replace undefined with null so Firestore accepts it
-    // Clean data: remove null/undefined stock fields so they don't overwrite valid values
-    const raw = JSON.parse(JSON.stringify(data, (k, v) => v === undefined ? null : v));
-    ['IPHONE','IPAD','MACBOOK'].forEach(cat => {
-      (raw[cat]||[]).forEach(item => { if (item.stock === null || item.stock === undefined) delete item.stock; });
-    });
-    const clean = raw;
-    clean._savedBy = _fbDeviceId;
-    clean._savedAt = Date.now();
-    await _fbDb.collection('pricelist').doc('main').set(clean);
-    fbUpdateDot('saved');
-    setTimeout(() => fbUpdateDot('connected'), 2000);
-  } catch(e) {
-    fbUpdateDot('error');
-    console.error('Save failed:', e.message);
-    showToast('❌ Save failed: ' + e.message);
-  }
-}
-
-function fbAutoSave() {
-  clearTimeout(_fbAutoSaveTimer);
-  _fbAutoSaveTimer = setTimeout(fbDoSave, 800);
-}
-
-function fbGetConfig() {
-  // Priority: 1) URL hash  2) localStorage
-  try {
-    const hash = window.location.hash.slice(1);
-    if (hash && hash.startsWith('fb=')) {
-      const cfg = JSON.parse(atob(hash.slice(3)));
-      if (cfg && cfg.apiKey) {
-        // Save to localStorage so next open (without hash) also works
-        localStorage.setItem('fbConfig', JSON.stringify(cfg));
-        // Clean hash from URL silently
-        history.replaceState(null, '', window.location.pathname + window.location.search);
-        return cfg;
-      }
-    }
-  } catch(e) {}
-  return JSON.parse(localStorage.getItem('fbConfig') || 'null');
-}
-function fbIsConfigured() {
-  const cfg = fbGetConfig();
-  return cfg && cfg.apiKey && cfg.projectId;
-}
-function fbShareLink() {
-  const cfg = fbGetConfig();
-  if (!cfg) return null;
-  const encoded = btoa(JSON.stringify(cfg));
-  return window.location.href.split('#')[0] + '#fb=' + encoded;
-}
-function fbUpdateDot(state) {
-  const dot = document.getElementById('fbDot');
-  const btn = document.getElementById('fbStatusBtn');
-  if (!dot) return;
-  const colors = { connected:'#30D158', saving:'#FFD60A', saved:'#30D158', error:'#FF453A', off:'#6e6e73' };
-  const tips   = { connected:'Connected – click to save', saving:'Saving...', saved:'Saved ✓', error:'Error – check config', off:'Not configured – click gear to setup' };
-  dot.style.background = colors[state] || colors.off;
-  if (btn) btn.title = tips[state] || '';
-}
-
-
-function normalizeData(d) {
-  ['IPHONE','IPAD','MACBOOK'].forEach(cat => {
-    (d[cat] || []).forEach(item => {
-      // Normalize stock: null/undefined/0 with no intent = null, positive number = keep
-      if (item.stock === undefined || item.stock === 0) item.stock = null;
-      else item.stock = parseInt(item.stock) || null;
-    });
-  });
-  return d;
-}
-
-function fbInit() {
-  const cfg = fbGetConfig();
-  if (!cfg || !cfg.apiKey) { fbUpdateDot('off'); return; }
-  try {
-    // Delete previous app if exists
-    if (_fbApp) { _fbApp.delete(); _fbApp = null; _fbDb = null; }
-    if (_fbUnsub) { _fbUnsub(); _fbUnsub = null; }
-    _fbApp = firebase.initializeApp(cfg, 'pricelist-' + Date.now());
-    _fbDb  = firebase.firestore(_fbApp);
-    fbUpdateDot('connected');
-    // Silently load latest data from Firebase in background
-    _fbDb.collection('pricelist').doc('main').get().then(snap => {
-      if (snap.exists) {
-        const d = snap.data();
-        if (d && d.IPHONE) {
-          const d2 = {...d}; delete d2._savedBy; delete d2._savedAt;
-          normalizeData(d2);
-          Object.assign(data, d2);
-          renderTabs(); renderSubfilters(); renderContent(); // silent update
-          fbUpdateDot('connected');
-        }
-      }
-    }).catch(e => { console.error('Initial load failed:', e); fbUpdateDot('error'); });
-    // Live listener
-    _fbUnsub = _fbDb.collection('pricelist').doc('main').onSnapshot(snap => {
-      if (!snap.exists) return;
-      const d = snap.data();
-      if (!d || !d.IPHONE) return;
-      // Skip echo — this save came from our own device
-      if (d._savedBy === _fbDeviceId) return;
-      // Apply remote data
-      const clean = {...d};
-      delete clean._savedBy; delete clean._savedAt;
-      normalizeData(clean);
-      Object.assign(data, clean);
-      ['IPHONE','IPAD','MACBOOK'].forEach(cat => {
-        (data[cat]||[]).forEach(item => { if (!item.stock) delete item.stock; });
-      });
-      renderTabs(); renderSubfilters(); renderContent();
-      fbUpdateDot('connected');
-      showToast('📲 Synced from another device');
-    }, err => { fbUpdateDot('error'); console.error('Snapshot error:', err); });
-  } catch(e) {
-    fbUpdateDot('error');
-    console.error('Firebase init error:', e);
-  }
-}
-
-async function fbSaveNow() {
-  if (!fbIsConfigured()) { openFbConfig(); return; }
-  if (!_fbDb) { fbInit(); showToast('⏳ Connecting...'); setTimeout(fbSaveNow, 2000); return; }
-  await fbDoSave();
-  showToast('☁️ Saved to Firebase!');
-}
-
-function openFbConfig() {
-  document.getElementById('fbConfigModal').classList.add('open');
-  const cfg = fbGetConfig() || {};
-  ['apiKey','authDomain','projectId','storageBucket','messagingSenderId','appId'].forEach(k => {
-    const el = document.getElementById('fb_' + k);
-    if (el) el.value = cfg[k] || '';
-  });
-  // Show share section if already configured
-  const shareRow = document.getElementById('fbShareRow');
-  if (shareRow) {
-    if (cfg.apiKey) {
-      shareRow.style.display = '';
-      document.getElementById('fbShareLinkInline').value = fbShareLink() || '';
-    } else {
-      shareRow.style.display = 'none';
-    }
-  }
-}
-
-function saveFbConfig() {
-  const cfg = {};
-  ['apiKey','authDomain','projectId','storageBucket','messagingSenderId','appId'].forEach(k => {
-    cfg[k] = (document.getElementById('fb_' + k).value || '').trim();
-  });
-  if (!cfg.apiKey) { alert('API Key is required.'); return; }
-  if (!cfg.projectId) { alert('Project ID is required.'); return; }
-  localStorage.setItem('fbConfig', JSON.stringify(cfg));
-  document.getElementById('fbConfigModal').classList.remove('open');
-  fbInit();
-  showToast('✓ Firebase connected!');
-  // Show share modal after short delay so user can share to other devices
-  setTimeout(fbShowShare, 800);
-}
-
-function fbShowShare() {
-  const link = fbShareLink();
-  if (!link) return;
-  document.getElementById('fbShareLink').value = link;
-  // Generate QR via free API
-  const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(link);
-  document.getElementById('fbQrImg').src = qrUrl;
-  document.getElementById('fbShareModal').classList.add('open');
-}
-function fbCopyLink() {
-  const link = document.getElementById('fbShareLink').value;
-  navigator.clipboard.writeText(link).then(() => showToast('✓ Link copied!')).catch(() => {
-    document.getElementById('fbShareLink').select();
-    document.execCommand('copy');
-    showToast('✓ Link copied!');
-  });
-}
-
-function fbStartHeartbeat() {
-  clearInterval(_fbHeartbeat);
-  _fbHeartbeat = setInterval(() => {
-    // Re-fetch latest data every 30s as a safety net
-    if (_fbDb && fbIsConfigured()) {
-      _fbDb.collection('pricelist').doc('main').get().then(snap => {
-        if (snap.exists) {
-          const d = snap.data();
-          // Only update if remote data is different (check length as proxy)
-          if (d && d.IPHONE && Date.now() - _fbLastSaveTime > 5000) {
-            const remoteLen = (d.IPHONE||[]).length + (d.IPAD||[]).length + (d.MACBOOK||[]).length;
-            const localLen  = data.IPHONE.length + data.IPAD.length + data.MACBOOK.length;
-            if (remoteLen !== localLen) {
-              const dh = {...d}; delete dh._savedBy; delete dh._savedAt;
-              normalizeData(dh);
-              Object.assign(data, dh);
-              ['IPHONE','IPAD','MACBOOK'].forEach(cat => {
-                (data[cat]||[]).forEach(item => { if (!item.stock) delete item.stock; });
-              });
-              renderTabs(); renderSubfilters(); renderContent();
-              showToast('🔄 Data refreshed');
-            }
-          }
-        }
-      }).catch(() => {});
-    }
-  }, 30000);
-}
-
-// Auto-init on page load
-window.addEventListener('load', () => {
-  initRender(); // Render instantly from local data
-  if (fbIsConfigured()) {
-    fbInit();          // Firebase silently updates in background
-    fbStartHeartbeat();
-  } else {
-    fbUpdateDot('off');
-  }
-});
-
-// Re-sync when tab becomes visible again (user switches back to app)
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && _fbDb && fbIsConfigured()) {
-    _fbDb.collection('pricelist').doc('main').get().then(snap => {
-      if (snap.exists && Date.now() - _fbLastSaveTime > 3000) {
-        const d = snap.data();
-        if (d && d.IPHONE) {
-          const dv = {...d}; delete dv._savedBy; delete dv._savedAt;
-          normalizeData(dv);
-          Object.assign(data, dv);
-          ['IPHONE','IPAD','MACBOOK'].forEach(cat => {
-            (data[cat]||[]).forEach(item => {
-              if (item.stock === 0 || item.stock === null) delete item.stock;
-            });
-          });
-          renderTabs(); renderSubfilters(); renderContent();
-        }
-      }
-    }).catch(() => {});
-  }
-});
-
-// Reconnect when coming back online
-window.addEventListener('online', () => {
-  if (fbIsConfigured()) {
-    showToast('🌐 Back online — syncing...');
-    setTimeout(() => {
-      if (!_fbDb) fbInit();
-      else {
-        // Re-attach listener
-        if (_fbUnsub) { _fbUnsub(); _fbUnsub = null; }
-        fbInit();
-      }
-      fbStartHeartbeat();
-    }, 1000);
-  }
-});
-
-window.addEventListener('offline', () => {
-  fbUpdateDot('error');
-  showToast('📵 Offline — changes saved locally');
-});
+window.addEventListener('load', () => { initRender(); });
 
 </script>
-
-
-<!-- Firebase Config Modal -->
-<div class="modal-overlay" id="fbConfigModal" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">☁️ Firebase Setup</div>
-      <button class="modal-close" onclick="document.getElementById('fbConfigModal').classList.remove('open')">&#x2715;</button>
-    </div>
-    <p style="font-size:13px;color:var(--text3);margin-bottom:6px;line-height:1.7">
-      1. Go to <a href="https://console.firebase.google.com" target="_blank" style="color:var(--accent)">console.firebase.google.com</a><br>
-      2. Create a project → <strong>Build → Firestore Database → Create database</strong> (Test mode)<br>
-      3. <strong>Project Settings → Your Apps → &lt;/&gt; Web → Register app</strong> → copy config below
-    </p>
-    <div style="height:1px;background:var(--border);margin:14px 0"></div>
-    <div class="form-row"><label>API Key *</label><input type="text" id="fb_apiKey" placeholder="AIzaSy..." autocomplete="off" /></div>
-    <div class="form-row"><label>Auth Domain</label><input type="text" id="fb_authDomain" placeholder="your-app.firebaseapp.com" /></div>
-    <div class="form-row"><label>Project ID *</label><input type="text" id="fb_projectId" placeholder="your-project-id" /></div>
-    <div class="form-row"><label>Storage Bucket</label><input type="text" id="fb_storageBucket" placeholder="your-app.firebasestorage.app" /></div>
-    <div class="form-row"><label>Messaging Sender ID</label><input type="text" id="fb_messagingSenderId" placeholder="123456789" /></div>
-    <div class="form-row"><label>App ID</label><input type="text" id="fb_appId" placeholder="1:123:web:abc..." /></div>
-    <button class="btn-submit" onclick="saveFbConfig()">✓ Connect Firebase</button>
-    <!-- Share row — shown only when already configured -->
-    <div id="fbShareRow" style="display:none;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
-      <div style="font-size:12px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px">📲 Share to Other Devices</div>
-      <p style="font-size:12px;color:var(--text3);margin-bottom:10px">Copy this link and open it on any other device — it will auto-connect to the same database.</p>
-      <div style="display:flex;gap:8px">
-        <input type="text" id="fbShareLinkInline" readonly style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:8px 12px;color:var(--text2);font-size:11px;font-family:monospace;outline:none" />
-        <button onclick="navigator.clipboard.writeText(document.getElementById('fbShareLinkInline').value).then(()=>showToast('✓ Copied!'))" style="background:var(--accent);color:#fff;border:none;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;white-space:nowrap">Copy</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Firebase Share Modal -->
-<div class="modal-overlay" id="fbShareModal" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="modal" style="max-width:420px;text-align:center">
-    <div class="modal-header">
-      <div class="modal-title">📲 Share to Other Devices</div>
-      <button class="modal-close" onclick="document.getElementById('fbShareModal').classList.remove('open')">&#x2715;</button>
-    </div>
-    <p style="font-size:13px;color:var(--text3);margin-bottom:18px;line-height:1.6">
-      Scan this QR code on any other device — it will <strong style="color:var(--text)">auto-connect</strong> to the same Firebase database instantly. No typing needed.
-    </p>
-    <img id="fbQrImg" src="" alt="QR Code" style="width:200px;height:200px;border-radius:12px;border:2px solid var(--border);margin-bottom:16px" />
-    <p style="font-size:11px;color:var(--text3);margin-bottom:8px">Or copy the link manually:</p>
-    <div style="display:flex;gap:8px;margin-bottom:16px">
-      <input type="text" id="fbShareLink" readonly style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:8px 12px;color:var(--text2);font-size:11px;font-family:monospace;outline:none" />
-      <button onclick="fbCopyLink()" style="background:var(--accent);color:#fff;border:none;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer">Copy</button>
-    </div>
-    <p style="font-size:11px;color:var(--text3);line-height:1.6">⚠️ This link contains your Firebase credentials. Only share with trusted devices.</p>
-    <button onclick="document.getElementById('fbShareModal').classList.remove('open')" style="margin-top:14px;width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text2);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer">Done</button>
-  </div>
-</div>
-
-</body>
-</html>
-
-
-<!-- Firebase Config Modal -->
-<div class="modal-overlay" id="fbConfigModal" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">☁️ Firebase Setup</div>
-      <button class="modal-close" onclick="document.getElementById('fbConfigModal').classList.remove('open')">&#x2715;</button>
-    </div>
-    <p style="font-size:13px;color:var(--text3);margin-bottom:6px;line-height:1.7">
-      1. Go to <a href="https://console.firebase.google.com" target="_blank" style="color:var(--accent)">console.firebase.google.com</a><br>
-      2. Create a project → <strong>Build → Firestore Database → Create database</strong> (Test mode)<br>
-      3. <strong>Project Settings → Your Apps → &lt;/&gt; Web → Register app</strong> → copy config below
-    </p>
-    <div style="height:1px;background:var(--border);margin:14px 0"></div>
-    <div class="form-row"><label>API Key *</label><input type="text" id="fb_apiKey" placeholder="AIzaSy..." autocomplete="off" /></div>
-    <div class="form-row"><label>Auth Domain</label><input type="text" id="fb_authDomain" placeholder="your-app.firebaseapp.com" /></div>
-    <div class="form-row"><label>Project ID *</label><input type="text" id="fb_projectId" placeholder="your-project-id" /></div>
-    <div class="form-row"><label>Storage Bucket</label><input type="text" id="fb_storageBucket" placeholder="your-app.firebasestorage.app" /></div>
-    <div class="form-row"><label>Messaging Sender ID</label><input type="text" id="fb_messagingSenderId" placeholder="123456789" /></div>
-    <div class="form-row"><label>App ID</label><input type="text" id="fb_appId" placeholder="1:123:web:abc..." /></div>
-    <button class="btn-submit" onclick="saveFbConfig()">✓ Connect Firebase</button>
-    <!-- Share row — shown only when already configured -->
-    <div id="fbShareRow" style="display:none;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
-      <div style="font-size:12px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px">📲 Share to Other Devices</div>
-      <p style="font-size:12px;color:var(--text3);margin-bottom:10px">Copy this link and open it on any other device — it will auto-connect to the same database.</p>
-      <div style="display:flex;gap:8px">
-        <input type="text" id="fbShareLinkInline" readonly style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:8px 12px;color:var(--text2);font-size:11px;font-family:monospace;outline:none" />
-        <button onclick="navigator.clipboard.writeText(document.getElementById('fbShareLinkInline').value).then(()=>showToast('✓ Copied!'))" style="background:var(--accent);color:#fff;border:none;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;white-space:nowrap">Copy</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Firebase Share Modal -->
-<div class="modal-overlay" id="fbShareModal" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="modal" style="max-width:420px;text-align:center">
-    <div class="modal-header">
-      <div class="modal-title">📲 Share to Other Devices</div>
-      <button class="modal-close" onclick="document.getElementById('fbShareModal').classList.remove('open')">&#x2715;</button>
-    </div>
-    <p style="font-size:13px;color:var(--text3);margin-bottom:18px;line-height:1.6">
-      Scan this QR code on any other device — it will <strong style="color:var(--text)">auto-connect</strong> to the same Firebase database instantly. No typing needed.
-    </p>
-    <img id="fbQrImg" src="" alt="QR Code" style="width:200px;height:200px;border-radius:12px;border:2px solid var(--border);margin-bottom:16px" />
-    <p style="font-size:11px;color:var(--text3);margin-bottom:8px">Or copy the link manually:</p>
-    <div style="display:flex;gap:8px;margin-bottom:16px">
-      <input type="text" id="fbShareLink" readonly style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:8px 12px;color:var(--text2);font-size:11px;font-family:monospace;outline:none" />
-      <button onclick="fbCopyLink()" style="background:var(--accent);color:#fff;border:none;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer">Copy</button>
-    </div>
-    <p style="font-size:11px;color:var(--text3);line-height:1.6">⚠️ This link contains your Firebase credentials. Only share with trusted devices.</p>
-    <button onclick="document.getElementById('fbShareModal').classList.remove('open')" style="margin-top:14px;width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text2);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer">Done</button>
-  </div>
-</div>
 
 </body>
 </html>
