@@ -1748,6 +1748,7 @@ function deleteProduct(cat, idx) {
   renderSubfilters();
   renderContent();
   showToast('Deleted: ' + item.model);
+  saveToLocal();
 }
 function closeModal() {
   document.getElementById('modalOverlay').classList.remove('open');
@@ -1850,6 +1851,7 @@ function submitProduct() {
     renderSubfilters();
     renderContent();
     showToast('Updated: ' + model);
+    saveToLocal();
   } else {
     data[cat].unshift(newItem);
     closeModal();
@@ -1859,6 +1861,7 @@ function submitProduct() {
     renderSubfilters();
     renderContent();
     showToast('Added: ' + model);
+    saveToLocal();
   }
 }
 
@@ -1970,6 +1973,7 @@ function restoreBackup() {
         renderSubfilters();
         renderContent();
         showToast('✓ Backup restored!');
+        saveToLocal();
           } catch(err) {
         alert('Could not restore: ' + err.message);
       }
@@ -2047,7 +2051,34 @@ function initRender() {
 
 
 
-window.addEventListener('load', () => { initRender(); });
+
+// ── LOCAL STORAGE PERSISTENCE ─────────────────────────────────────────
+const LS_KEY = 'applePriceListData';
+
+function saveToLocal() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(data));
+  } catch(e) { console.warn('LocalStorage save failed:', e); }
+}
+
+function loadFromLocal() {
+  try {
+    const saved = localStorage.getItem(LS_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.IPHONE && parsed.IPHONE.length) {
+        Object.assign(data, parsed);
+        return true;
+      }
+    }
+  } catch(e) { console.warn('LocalStorage load failed:', e); }
+  return false;
+}
+
+window.addEventListener('load', () => {
+  loadFromLocal(); // Load saved data before rendering
+  initRender();
+});
 
 </script>
 
