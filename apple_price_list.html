@@ -664,6 +664,41 @@
     .hdr-btn { padding: 7px 9px; }
   }
 
+
+  /* Stock */
+  .stock-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 20px;
+    margin-top: 10px;
+    letter-spacing: 0.3px;
+  }
+  .stock-in    { background: rgba(48,209,88,0.12);  border: 1px solid rgba(48,209,88,0.3);  color: #30D158; }
+  .stock-low   { background: rgba(255,214,10,0.12); border: 1px solid rgba(255,214,10,0.3); color: #FFD60A; }
+  .stock-out   { background: rgba(255,69,58,0.12);  border: 1px solid rgba(255,69,58,0.3);  color: #FF453A; }
+  .stock-order { background: rgba(10,132,255,0.12); border: 1px solid rgba(10,132,255,0.3); color: #0A84FF; }
+  .td-stock-in    { color: #30D158 !important; font-weight: 600; }
+  .td-stock-low   { color: #FFD60A !important; font-weight: 600; }
+  .td-stock-out   { color: #FF453A !important; font-weight: 600; }
+  .td-stock-order { color: #0A84FF !important; font-weight: 600; }
+  .stock-qty-input {
+    width: 70px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 10px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: var(--font);
+    outline: none;
+    text-align: center;
+  }
+  .stock-qty-input:focus { border-color: var(--accent); }
+
   /* Filter Bar */
   .filter-bar {
     background: var(--surface);
@@ -874,6 +909,16 @@
           <option value="no_disc">No Discount</option>
         </select>
       </div>
+      <div class="filter-group">
+        <label>Stock Status</label>
+        <select id="fl_stock" onchange="applyFilters()">
+          <option value="">All</option>
+          <option value="in">✅ In Stock</option>
+          <option value="low">⚠️ Low Stock</option>
+          <option value="out">❌ Out of Stock</option>
+          <option value="order">📦 On Order</option>
+        </select>
+      </div>
       <div class="filter-group" id="fl_storage_group">
         <label>Storage</label>
         <select id="fl_storage" onchange="applyFilters()">
@@ -943,6 +988,21 @@
     <div class="form-row">
       <label>Sub-category / Series</label>
       <input type="text" id="f_subcat" placeholder="e.g. iPhone 17 Pro" />
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row">
+        <label>Stock Status</label>
+        <select id="f_stock">
+          <option value="in">✅ In Stock</option>
+          <option value="low">⚠️ Low Stock</option>
+          <option value="out">❌ Out of Stock</option>
+          <option value="order">📦 On Order</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Quantity</label>
+        <input type="number" id="f_qty" placeholder="e.g. 5" min="0" class="stock-qty-input" style="width:100%" />
+      </div>
     </div>
     <div class="form-row" id="row_desc" style="display:none">
       <label>Description</label>
@@ -1018,6 +1078,7 @@ let filterStorage = '';
 let filterMin = '';
 let filterMax = '';
 let filterModel = '';
+let filterStock = '';
 
 // ── DATA ──────────────────────────────────────────────────────────────
 const data = {
@@ -1212,11 +1273,12 @@ function getSubcat(model) {
 }
 
 function getFilteredItems() {
-  const items = (data[currentCategory] || []).map(i => {
-    if (currentCategory === 'IPHONE') return {...i, subcat: getSubcat(i.model)};
-    return i;
+  // Attach original index FIRST before any spreading/filtering
+  let filtered = (data[currentCategory] || []).map((item, idx) => {
+    const enriched = {...item, _cat: currentCategory, _idx: idx};
+    if (currentCategory === 'IPHONE') enriched.subcat = getSubcat(item.model);
+    return enriched;
   });
-  let filtered = items.map((item, idx) => ({...item, _cat: currentCategory, _idx: data[currentCategory].indexOf(item)}));
   if (currentSubfilter !== 'all') {
     filtered = filtered.filter(i => i.subcat === currentSubfilter);
   }
@@ -1228,6 +1290,7 @@ function getFilteredItems() {
   if (filterDisc === 'has_disc') filtered = filtered.filter(i => (i.discFull > 0 || (i.discEMI||0) > 0));
   if (filterDisc === 'no_disc')  filtered = filtered.filter(i => i.discFull === 0 && (i.discEMI||0) === 0);
   if (filterModel)   filtered = filtered.filter(i => (i.subcat||'') === filterModel);
+  if (filterStock)   filtered = filtered.filter(i => (i.stock||'in') === filterStock);
   if (filterStorage) filtered = filtered.filter(i => {
     const m = (i.model + ' ' + (i.storage||'')).toLowerCase();
     return m.includes(filterStorage.toLowerCase());
@@ -1341,6 +1404,31 @@ function renderContent() {
   }
 }
 
+
+function stockInfo(item) {
+  const s = item.stock || 'in';
+  const q = item.qty !== undefined ? item.qty : null;
+  const qLabel = q !== null ? ' (' + q + ')' : '';
+  const map = {
+    in:    { cls: 'stock-in',    icon: '●', label: 'In Stock' + qLabel },
+    low:   { cls: 'stock-low',   icon: '●', label: 'Low Stock' + qLabel },
+    out:   { cls: 'stock-out',   icon: '●', label: 'Out of Stock' },
+    order: { cls: 'stock-order', icon: '●', label: 'On Order' + qLabel },
+  };
+  return map[s] || map['in'];
+}
+function stockCardHtml(item) {
+  const { cls, icon, label } = stockInfo(item);
+  return `<div class="stock-badge ${cls}">${icon} ${label}</div>`;
+}
+function stockTableClass(item) {
+  return 'td-stock-' + (item.stock || 'in');
+}
+function stockTableLabel(item) {
+  const { label } = stockInfo(item);
+  return label;
+}
+
 function renderCard(item) {
   const {disc, price} = getPriceInfo(item);
   const saved = item.mrp - price;
@@ -1399,6 +1487,7 @@ function renderTable(items) {
       ${disc > 0 ? `<td class="td-disc">– ${fmt(disc)}</td>` : `<td style="color:var(--text3)">—</td>`}
       <td class="td-final">${fmt(price)}</td>
       <td style="color:var(--gold)">${saved > 0 ? fmt(saved) : '—'}</td>
+      <td class="${stockTableClass(item)}">${stockTableLabel(item)}</td>
       <td class="td-actions">
         <button class="td-btn-edit" onclick="editProduct('${item._cat}',${item._idx})">✏️ Edit</button>
         <button class="td-btn-del" onclick="deleteProduct('${item._cat}',${item._idx})">🗑</button>
@@ -1416,6 +1505,7 @@ function renderTable(items) {
       <th>Card Disc.</th>
       <th>Net Landing</th>
       <th>Savings</th>
+      <th>Stock</th>
       <th>Actions</th>
     </tr></thead>
     <tbody>${rows}</tbody>
@@ -1453,6 +1543,8 @@ function editProduct(cat, idx) {
   document.getElementById('f_model').value   = item.model || '';
   document.getElementById('f_subcat').value  = item.subcat || '';
   document.getElementById('f_mrp').value     = item.mrp || '';
+  document.getElementById('f_stock').value   = item.stock || 'in';
+  document.getElementById('f_qty').value     = item.qty !== undefined ? item.qty : '';
   document.getElementById('f_mrp').closest('.form-row').classList.add('mrp-struck');
   document.getElementById('f_nlc').value     = item.nlc || '';
   if (cat === 'MACBOOK') {
@@ -1493,7 +1585,7 @@ function handleOverlayClick(e) {
   if (e.target === document.getElementById('modalOverlay')) closeModal();
 }
 function resetForm() {
-  ['f_model','f_subcat','f_desc','f_ram','f_storage','f_mrp','f_nlc','f_discFull','f_discEMI'].forEach(id => {
+  ['f_model','f_subcat','f_desc','f_ram','f_storage','f_mrp','f_nlc','f_discFull','f_discEMI','f_qty'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -1551,6 +1643,8 @@ function submitProduct() {
   const discFull = hasFull ? (parseInt(document.getElementById('f_discFull').value) || 0) : 0;
   const discEMI  = hasEMI  ? (parseInt(document.getElementById('f_discEMI').value)  || 0) : 0;
 
+  const stock = document.getElementById('f_stock').value || 'in';
+  const qty   = document.getElementById('f_qty').value !== '' ? parseInt(document.getElementById('f_qty').value) : undefined;
   const newItem = {
     model,
     subcat: document.getElementById('f_subcat').value.trim() || 'Custom',
@@ -1560,6 +1654,8 @@ function submitProduct() {
     priceFull: nlc - discFull,
     discEMI,
     priceEMI: nlc - discEMI,
+    stock,
+    qty,
     isNew: true,
   };
   if (isMac) {
@@ -1622,13 +1718,14 @@ function applyFilters() {
   filterMin     = document.getElementById('fl_min').value;
   filterMax     = document.getElementById('fl_max').value;
   filterModel   = document.getElementById('fl_model').value;
+  filterStock   = document.getElementById('fl_stock').value;
   renderActiveFilterTags();
   renderContent();
 }
 function resetFilters() {
-  ['fl_sort','fl_disc','fl_storage','fl_model'].forEach(id => document.getElementById(id).value = '');
+  ['fl_sort','fl_disc','fl_storage','fl_model','fl_stock'].forEach(id => document.getElementById(id).value = '');
   ['fl_min','fl_max'].forEach(id => document.getElementById(id).value = '');
-  filterSort = filterDisc = filterStorage = filterMin = filterMax = filterModel = '';
+  filterSort = filterDisc = filterStorage = filterMin = filterMax = filterModel = filterStock = '';
   renderActiveFilterTags();
   renderContent();
 }
@@ -1640,6 +1737,7 @@ function renderActiveFilterTags() {
     fl_storage: { '128GB':'128GB','256GB':'256GB','512GB':'512GB','1TB':'1TB','2TB':'2TB' },
   };
   if (filterModel)   tags.push({id:'fl_model',   label:'Model: '   + filterModel});
+  if (filterStock)   tags.push({id:'fl_stock',   label:'Stock: '   + ({ in:'In Stock', low:'Low Stock', out:'Out of Stock', order:'On Order' })[filterStock]});
   if (filterSort)    tags.push({id:'fl_sort',    label:'Sort: '    + labels.fl_sort[filterSort]});
   if (filterDisc)    tags.push({id:'fl_disc',    label:'Discount: '+ labels.fl_disc[filterDisc]});
   if (filterStorage) tags.push({id:'fl_storage', label:'Storage: ' + filterStorage});
@@ -1658,6 +1756,7 @@ function renderActiveFilterTags() {
 function clearFilter(id) {
   document.getElementById(id).value = '';
   if (id==='fl_model')   filterModel   = '';
+  if (id==='fl_stock')   filterStock   = '';
   if (id==='fl_sort')    filterSort    = '';
   if (id==='fl_disc')    filterDisc    = '';
   if (id==='fl_storage') filterStorage = '';
