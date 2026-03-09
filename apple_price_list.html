@@ -32,6 +32,10 @@
     -webkit-font-smoothing: antialiased;
   }
 
+
+  .header-row1, .header-row2 { display: flex; align-items: center; gap: 12px; padding: 0; border: none; }
+  .header-inner { display: flex; align-items: center; gap: 16px; height: 56px; }
+
   /* Header */
   .header {
     background: rgba(0,0,0,0.85);
@@ -661,16 +665,41 @@
   }
 
   @media (max-width: 640px) {
-    /* Header */
-    .header { padding: 0 12px; }
-    .header-inner { gap: 8px; flex-wrap: nowrap; }
-    .logo { font-size: 15px; }
+    /* Header — 2 row layout on mobile */
+    .header { padding: 0; }
+    .header-inner {
+      flex-direction: column;
+      gap: 0;
+      padding: 0;
+      align-items: stretch;
+    }
+    /* Row 1: logo + pay toggle + view toggle */
+    .header-row1 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    /* Row 2: search + action buttons */
+    .header-row2 {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+    }
+    .logo { font-size: 15px; flex-shrink: 0; }
     .logo span { display: none; }
-    .hdr-actions { gap: 5px; }
+    .pay-toggle { gap: 4px; margin-left: auto; }
+    .pay-btn { padding: 6px 10px; font-size: 11px; }
+    .view-toggle { gap: 3px; flex-shrink: 0; }
+    .view-btn { padding: 6px 8px; }
+    .search-wrap { flex: 1; min-width: 0; }
+    .search-input { font-size: 13px; }
+    .header-actions { gap: 4px; flex-shrink: 0; }
     .hdr-btn { padding: 6px 8px; font-size: 11px; min-width: unset; }
     .hdr-btn svg { width: 13px; height: 13px; }
-    .pay-toggle { gap: 4px; }
-    .pay-btn { padding: 6px 8px; font-size: 11px; }
+    .hdr-btn span.btn-label { display: none; }
 
     /* Tabs */
     .tabs { gap: 6px; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; scrollbar-width: none; }
@@ -984,45 +1013,51 @@
 
 <header class="header">
   <div class="header-inner">
-    <div class="logo">&#xf8ff; <span>Price List</span></div>
-    <div class="search-wrap">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-      </svg>
-      <input type="text" class="search-input" id="search" placeholder="Search models..." />
+    <!-- Row 1: Logo | Pay Toggle | View Toggle -->
+    <div class="header-row1">
+      <div class="logo">&#xf8ff; <span>Price List</span></div>
+      <div class="pay-toggle">
+        <button class="pay-btn active" data-pay="full" onclick="setPayment('full')">Full Swipe</button>
+        <button class="pay-btn" data-pay="emi" onclick="setPayment('emi')">6M EMI</button>
+      </div>
+      <div class="view-toggle">
+        <button class="view-btn active" id="gridBtn" onclick="setView('grid')" title="Grid">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        </button>
+        <button class="view-btn" id="tableBtn" onclick="setView('table')" title="Table">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
     </div>
-    <div class="pay-toggle">
-      <button class="pay-btn active" data-pay="full" onclick="setPayment('full')">Full Swipe</button>
-      <button class="pay-btn" data-pay="emi" onclick="setPayment('emi')">6M EMI</button>
-    </div>
-    <div class="header-actions">
-      <button class="hdr-btn hdr-btn-fb" id="fbStatusBtn" onclick="fbSaveNow()" title="Firebase not configured">
-        <span id="fbDot" style="width:8px;height:8px;border-radius:50%;background:#6e6e73;display:inline-block;flex-shrink:0"></span>
-        ☁️ Firebase
-      </button>
-      <button class="hdr-btn hdr-btn-fb-cfg" onclick="openFbConfig()" title="Configure Firebase">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      </button>
-      <button class="hdr-btn" onclick="restoreBackup()" title="Restore Backup">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-        Restore
-      </button>
-      <button class="hdr-btn" onclick="downloadBackup()" title="Backup JSON">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Backup
-      </button>
-      <button class="hdr-btn hdr-btn-green" onclick="exportExcel()" title="Export Excel">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-        Excel
-      </button>
-    </div>
-    <div class="view-toggle">
-      <button class="view-btn active" id="gridBtn" onclick="setView('grid')" title="Grid">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      </button>
-      <button class="view-btn" id="tableBtn" onclick="setView('table')" title="Table">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      </button>
+    <!-- Row 2: Search | Action Buttons -->
+    <div class="header-row2">
+      <div class="search-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" class="search-input" id="search" placeholder="Search models..." />
+      </div>
+      <div class="header-actions">
+        <button class="hdr-btn hdr-btn-fb" id="fbStatusBtn" onclick="fbSaveNow()" title="Firebase">
+          <span id="fbDot" style="width:8px;height:8px;border-radius:50%;background:#6e6e73;display:inline-block;flex-shrink:0"></span>
+          <span class="btn-label">Firebase</span>
+        </button>
+        <button class="hdr-btn hdr-btn-fb-cfg" onclick="openFbConfig()" title="Configure Firebase">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+        <button class="hdr-btn" onclick="restoreBackup()" title="Restore">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          <span class="btn-label">Restore</span>
+        </button>
+        <button class="hdr-btn" onclick="downloadBackup()" title="Backup">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span class="btn-label">Backup</span>
+        </button>
+        <button class="hdr-btn hdr-btn-green" onclick="exportExcel()" title="Excel">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          <span class="btn-label">Excel</span>
+        </button>
+      </div>
     </div>
   </div>
 </header>
