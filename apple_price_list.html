@@ -1757,7 +1757,7 @@ function deleteProduct(cat, idx) {
   renderSubfilters();
   renderContent();
   showToast('Deleted: ' + item.model);
-  fbAutoSave();
+  fbDoSave();
 }
 function closeModal() {
   document.getElementById('modalOverlay').classList.remove('open');
@@ -1830,7 +1830,7 @@ function submitProduct() {
   const newItem = {
     model,
     subcat: document.getElementById('f_subcat').value.trim() || 'Custom',
-    ...(stock !== null ? {stock} : {}),
+    stock: stock,
     mrp,
     nlc,
     discFull,
@@ -1860,7 +1860,7 @@ function submitProduct() {
     renderSubfilters();
     renderContent();
     showToast('Updated: ' + model);
-    fbAutoSave();
+    fbDoSave();
   } else {
     data[cat].unshift(newItem);
     closeModal();
@@ -1870,7 +1870,7 @@ function submitProduct() {
     renderSubfilters();
     renderContent();
     showToast('Added: ' + model);
-    fbAutoSave();
+    fbDoSave();
   }
 }
 
@@ -1982,6 +1982,7 @@ function restoreBackup() {
         renderSubfilters();
         renderContent();
         showToast('✓ Backup restored!');
+        fbDoSave();
       } catch(err) {
         alert('Could not restore: ' + err.message);
       }
@@ -2080,7 +2081,12 @@ async function fbDoSave() {
     _fbLastSaveTime = Date.now();
     fbUpdateDot('saving');
     // Deep clean - replace undefined with null so Firestore accepts it
-    const clean = JSON.parse(JSON.stringify(data, (k, v) => v === undefined ? null : v));
+    // Clean data: remove null/undefined stock fields so they don't overwrite valid values
+    const raw = JSON.parse(JSON.stringify(data, (k, v) => v === undefined ? null : v));
+    ['IPHONE','IPAD','MACBOOK'].forEach(cat => {
+      (raw[cat]||[]).forEach(item => { if (item.stock === null || item.stock === undefined) delete item.stock; });
+    });
+    const clean = raw;
     clean._savedBy = _fbDeviceId;
     clean._savedAt = Date.now();
     await _fbDb.collection('pricelist').doc('main').set(clean);
@@ -2135,6 +2141,18 @@ function fbUpdateDot(state) {
   if (btn) btn.title = tips[state] || '';
 }
 
+
+function normalizeData(d) {
+  ['IPHONE','IPAD','MACBOOK'].forEach(cat => {
+    (d[cat] || []).forEach(item => {
+      // Normalize stock: null/undefined/0 with no intent = null, positive number = keep
+      if (item.stock === undefined || item.stock === 0) item.stock = null;
+      else item.stock = parseInt(item.stock) || null;
+    });
+  });
+  return d;
+}
+
 function fbInit() {
   const cfg = fbGetConfig();
   if (!cfg || !cfg.apiKey) { fbUpdateDot('off'); return; }
@@ -2151,9 +2169,12 @@ function fbInit() {
         const d = snap.data();
         if (d && d.IPHONE && d.IPHONE.length) {
           const d2 = {...d}; delete d2._savedBy; delete d2._savedAt;
+          normalizeData(d2);
           Object.assign(data, d2);
           ['IPHONE','IPAD','MACBOOK'].forEach(cat => {
-            (data[cat]||[]).forEach(item => { if (item.stock === 0) item.stock = null; });
+            (data[cat]||[]).forEach(item => {
+              if (item.stock === 0 || item.stock === null) delete item.stock;
+            });
           });
           renderTabs(); renderSubfilters(); renderContent();
           fbUpdateDot('connected');
@@ -2170,9 +2191,10 @@ function fbInit() {
       // Apply remote data
       const clean = {...d};
       delete clean._savedBy; delete clean._savedAt;
+      normalizeData(clean);
       Object.assign(data, clean);
       ['IPHONE','IPAD','MACBOOK'].forEach(cat => {
-        (data[cat]||[]).forEach(item => { if (item.stock === 0) item.stock = null; });
+        (data[cat]||[]).forEach(item => { if (!item.stock) delete item.stock; });
       });
       renderTabs(); renderSubfilters(); renderContent();
       fbUpdateDot('connected');
@@ -2186,15 +2208,9 @@ function fbInit() {
 
 async function fbSaveNow() {
   if (!fbIsConfigured()) { openFbConfig(); return; }
-  if (!_fbDb) { fbInit(); setTimeout(fbSaveNow, 1500); return; }
-  fbUpdateDot('saving');
-  try {
-    await fbDoSave();
-    showToast('☁️ Saved to Firebase!');
-  } catch(e) {
-    fbUpdateDot('error');
-    alert('Save failed: ' + e.message + '\n\nMake sure Firestore is enabled in your Firebase console.');
-  }
+  if (!_fbDb) { fbInit(); showToast('⏳ Connecting...'); setTimeout(fbSaveNow, 2000); return; }
+  await fbDoSave();
+  showToast('☁️ Saved to Firebase!');
 }
 
 function openFbConfig() {
@@ -2263,9 +2279,10 @@ function fbStartHeartbeat() {
             const localLen  = data.IPHONE.length + data.IPAD.length + data.MACBOOK.length;
             if (remoteLen !== localLen) {
               const dh = {...d}; delete dh._savedBy; delete dh._savedAt;
+              normalizeData(dh);
               Object.assign(data, dh);
               ['IPHONE','IPAD','MACBOOK'].forEach(cat => {
-                (data[cat]||[]).forEach(item => { if (item.stock === 0) item.stock = null; });
+                (data[cat]||[]).forEach(item => { if (!item.stock) delete item.stock; });
               });
               renderTabs(); renderSubfilters(); renderContent();
               showToast('🔄 Data refreshed');
@@ -2291,9 +2308,12 @@ document.addEventListener('visibilitychange', () => {
         const d = snap.data();
         if (d && d.IPHONE) {
           const dv = {...d}; delete dv._savedBy; delete dv._savedAt;
+          normalizeData(dv);
           Object.assign(data, dv);
           ['IPHONE','IPAD','MACBOOK'].forEach(cat => {
-            (data[cat]||[]).forEach(item => { if (item.stock === 0) item.stock = null; });
+            (data[cat]||[]).forEach(item => {
+              if (item.stock === 0 || item.stock === null) delete item.stock;
+            });
           });
           renderTabs(); renderSubfilters(); renderContent();
         }
