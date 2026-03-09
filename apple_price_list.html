@@ -362,13 +362,7 @@
   .disc-item-name { font-size: 12px; font-weight: 600; color: var(--text); }
   .disc-item-vals { font-size: 11px; color: var(--text3); margin-top: 3px; line-height: 1.5; }
 
-  @media (max-width: 640px) {
-    .header-inner { gap: 12px; }
-    .logo { font-size: 17px; }
-    .main { padding: 20px 16px; }
-    .grid { grid-template-columns: 1fr; }
-    .pay-btn { padding: 7px 10px; font-size: 11px; }
-  }
+
 
   /* FAB */
   .fab {
@@ -659,10 +653,110 @@
   .hdr-btn-fb-cfg:hover { color: var(--text); }
   .hdr-btn-green { color: var(--accent2); border-color: rgba(48,209,88,0.3); background: rgba(48,209,88,0.07); }
   .hdr-btn-green:hover { background: rgba(48,209,88,0.15); border-color: rgba(48,209,88,0.5); }
+
+  /* ── MOBILE RESPONSIVE ─────────────────────────────────────── */
   @media (max-width: 768px) {
     .hdr-btn span.btn-label { display: none; }
     .hdr-btn { padding: 7px 9px; }
   }
+
+  @media (max-width: 640px) {
+    /* Header */
+    .header { padding: 0 12px; }
+    .header-inner { gap: 8px; flex-wrap: nowrap; }
+    .logo { font-size: 15px; }
+    .logo span { display: none; }
+    .hdr-actions { gap: 5px; }
+    .hdr-btn { padding: 6px 8px; font-size: 11px; min-width: unset; }
+    .hdr-btn svg { width: 13px; height: 13px; }
+    .pay-toggle { gap: 4px; }
+    .pay-btn { padding: 6px 8px; font-size: 11px; }
+
+    /* Tabs */
+    .tabs { gap: 6px; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab { padding: 8px 14px; font-size: 12px; white-space: nowrap; flex-shrink: 0; }
+
+    /* Stock summary */
+    .stock-summary-bar { gap: 6px; }
+    .stock-summary-item { padding: 6px 12px; border-radius: 8px; }
+    .stock-summary-label { font-size: 12px; }
+    .stock-summary-qty { font-size: 12px; padding: 1px 7px; }
+
+    /* Subfilters */
+    .subfilters { gap: 6px; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; scrollbar-width: none; }
+    .subfilters::-webkit-scrollbar { display: none; }
+    .subfilter-btn { padding: 6px 12px; font-size: 11px; white-space: nowrap; flex-shrink: 0; }
+
+    /* Stats bar */
+    .stats-bar { flex-wrap: wrap; gap: 8px; font-size: 12px; padding: 8px 0; }
+    .filter-toggle-btn { font-size: 11px; padding: 5px 10px; }
+
+    /* Main */
+    .main { padding: 14px 12px; }
+
+    /* Grid — 2 columns on mobile */
+    .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+    /* Cards */
+    .card { padding: 12px; border-radius: 12px; }
+    .card-model { font-size: 12px; padding-right: 0; }
+    .card-badge { font-size: 10px; padding: 2px 6px; top: 10px; right: 10px; }
+    .card-desc { font-size: 10px; margin-bottom: 8px; }
+    .card-mrp { font-size: 11px; }
+    .card-nlc-row { gap: 6px; flex-wrap: wrap; }
+    .card-nlc { font-size: 18px; }
+    .disc-badge { font-size: 10px; padding: 2px 6px; }
+    .card-divider { margin: 8px 0; }
+    .card-detail-row { font-size: 11px; }
+    .savings-badge { font-size: 10px; padding: 3px 8px; }
+    .card-actions { gap: 6px; margin-top: 10px; }
+    .btn-edit, .btn-delete { padding: 6px 0; font-size: 11px; }
+    .stock-qty { font-size: 10px; padding: 1px 5px; margin-left: 4px; }
+    .new-badge { font-size: 9px; padding: 2px 6px; }
+
+    /* Filter bar */
+    .filter-bar { padding: 14px; gap: 10px; }
+    .filter-groups { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .filter-group label { font-size: 10px; }
+    .filter-group select, .filter-group input { font-size: 12px; padding: 7px 10px; }
+    .filter-price-row { flex-direction: column; gap: 6px; }
+    .filter-actions { flex-direction: column; gap: 8px; }
+    .btn-apply-filters, .btn-reset-filters { width: 100%; padding: 10px; font-size: 13px; }
+
+    /* Active filter tags */
+    .active-filters-row { gap: 6px; }
+    .active-filter-tag { font-size: 11px; padding: 3px 8px; }
+
+    /* Table — horizontal scroll */
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 12px; }
+    table { min-width: 600px; font-size: 12px; }
+    th, td { padding: 10px 10px; }
+
+    /* FAB */
+    .fab { width: 52px; height: 52px; font-size: 22px; bottom: 20px; right: 16px; }
+
+    /* Modal */
+    .modal { padding: 20px 16px; margin: 10px; max-height: 90vh; overflow-y: auto; border-radius: 16px; }
+    .modal-title { font-size: 16px; }
+    .form-row label { font-size: 12px; }
+    .form-row input, .form-row select { font-size: 13px; padding: 9px 12px; }
+    .form-grid-2 { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .btn-submit { font-size: 14px; padding: 12px; }
+    .disc-section { padding: 12px; }
+    .disc-section-title { font-size: 11px; }
+    .chk-row { font-size: 12px; }
+  }
+
+  @media (max-width: 400px) {
+    /* Very small phones — single column */
+    .grid { grid-template-columns: 1fr; }
+    .form-grid-2 { grid-template-columns: 1fr; }
+    .filter-groups { grid-template-columns: 1fr; }
+    .header-inner { gap: 6px; }
+    .hdr-actions { gap: 3px; }
+  }
+
 
 
   /* Stock */
@@ -698,6 +792,56 @@
     text-align: center;
   }
   .stock-qty-input:focus { border-color: var(--accent); }
+
+
+
+  .stock-qty {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent2);
+    background: rgba(48,209,88,0.1);
+    border: 1px solid rgba(48,209,88,0.25);
+    border-radius: 6px;
+    padding: 1px 7px;
+    margin-left: 6px;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+
+  /* Stock Summary Bar */
+  .stock-summary-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .stock-summary-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 16px;
+  }
+  .stock-summary-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+  }
+  .stock-summary-qty {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent2);
+    background: rgba(48,209,88,0.1);
+    border: 1px solid rgba(48,209,88,0.2);
+    border-radius: 6px;
+    padding: 1px 9px;
+  }
 
   /* Filter Bar */
   .filter-bar {
@@ -885,6 +1029,7 @@
 
 <main class="main">
   <div class="tabs" id="tabs"></div>
+  <div class="stock-summary-bar" id="stockSummaryBar"></div>
   <div class="subfilters" id="subfilters"></div>
   <div class="stats-bar" id="statsBar"></div>
   <div class="filter-bar" id="filterBar">
@@ -907,16 +1052,6 @@
           <option value="">All</option>
           <option value="has_disc">Has Card Discount</option>
           <option value="no_disc">No Discount</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label>Stock Status</label>
-        <select id="fl_stock" onchange="applyFilters()">
-          <option value="">All</option>
-          <option value="in">✅ In Stock</option>
-          <option value="low">⚠️ Low Stock</option>
-          <option value="out">❌ Out of Stock</option>
-          <option value="order">📦 On Order</option>
         </select>
       </div>
       <div class="filter-group" id="fl_storage_group">
@@ -989,16 +1124,11 @@
       <label>Sub-category / Series</label>
       <input type="text" id="f_subcat" placeholder="e.g. iPhone 17 Pro" />
     </div>
+    <div class="form-row">
+      <label>Stock Quantity</label>
+      <input type="number" id="f_stock" placeholder="e.g. 5" min="0" />
+    </div>
     <div class="form-grid-2">
-      <div class="form-row">
-        <label>Stock Status</label>
-        <select id="f_stock">
-          <option value="in">✅ In Stock</option>
-          <option value="low">⚠️ Low Stock</option>
-          <option value="out">❌ Out of Stock</option>
-          <option value="order">📦 On Order</option>
-        </select>
-      </div>
       <div class="form-row">
         <label>Quantity</label>
         <input type="number" id="f_qty" placeholder="e.g. 5" min="0" class="stock-qty-input" style="width:100%" />
@@ -1290,7 +1420,12 @@ function getFilteredItems() {
   if (filterDisc === 'has_disc') filtered = filtered.filter(i => (i.discFull > 0 || (i.discEMI||0) > 0));
   if (filterDisc === 'no_disc')  filtered = filtered.filter(i => i.discFull === 0 && (i.discEMI||0) === 0);
   if (filterModel)   filtered = filtered.filter(i => (i.subcat||'') === filterModel);
-  if (filterStock)   filtered = filtered.filter(i => (i.stock||'in') === filterStock);
+  if (filterStock === 'out') filtered = filtered.filter(i => i.stock === 0);
+  else if (filterStock === 'low') filtered = filtered.filter(i => i.stock > 0 && i.stock <= 3);
+  else if (filterStock === 'in')  filtered = filtered.filter(i => i.stock > 3);
+  if (filterStock === 'out') filtered = filtered.filter(i => i.stock === 0);
+  else if (filterStock === 'low') filtered = filtered.filter(i => i.stock > 0 && i.stock <= 3);
+  else if (filterStock === 'in')  filtered = filtered.filter(i => i.stock > 3);
   if (filterStorage) filtered = filtered.filter(i => {
     const m = (i.model + ' ' + (i.storage||'')).toLowerCase();
     return m.includes(filterStorage.toLowerCase());
@@ -1335,6 +1470,10 @@ function setSubfilter(sf) {
   renderContent();
 }
 
+function getTotalStock(cat) {
+  return (data[cat] || []).reduce((sum, i) => sum + (parseInt(i.stock) || 0), 0);
+}
+
 function renderTabs() {
   const el = document.getElementById('tabs');
   el.innerHTML = Object.entries(categoryMeta).map(([k, v]) => {
@@ -1344,6 +1483,18 @@ function renderTabs() {
       ${v.icon} ${v.label} <span class="tab-count">${count}</span>
     </button>`;
   }).join('');
+
+  // Stock summary bar
+  const stockBar = document.getElementById('stockSummaryBar');
+  if (stockBar) {
+    stockBar.innerHTML = Object.entries(categoryMeta).map(([k, v]) => {
+      const qty = getTotalStock(k);
+      return `<div class="stock-summary-item">
+        <span class="stock-summary-label">${v.icon} ${v.label}</span>
+        <span class="stock-summary-qty">${qty} units</span>
+      </div>`;
+    }).join('');
+  }
 }
 
 function renderSubfilters() {
@@ -1444,7 +1595,7 @@ function renderCard(item) {
 
   return `<div class="card">
     <div class="card-badge ${hasDisc ? '' : 'no-disc'}">${hasDisc ? '💳 DISCOUNT' : 'FIXED PRICE'}</div>
-    <div class="card-model">${item.model}</div>
+    <div class="card-model">${item.model} ${(item.stock > 0) ? `<span class="stock-qty">📦 ${item.stock}</span>` : ''}</div>
     ${item.desc ? `<div class="card-desc">${item.desc}</div>` : ''}
     ${specsHtml}
     <div class="divider"></div>
@@ -1542,8 +1693,9 @@ function editProduct(cat, idx) {
   onCategoryChange();
   document.getElementById('f_model').value   = item.model || '';
   document.getElementById('f_subcat').value  = item.subcat || '';
+  document.getElementById('f_stock').value   = item.stock !== undefined ? item.stock : '';
   document.getElementById('f_mrp').value     = item.mrp || '';
-  document.getElementById('f_stock').value   = item.stock || 'in';
+  document.getElementById('f_stock').value   = item.stock !== undefined ? item.stock : '';
   document.getElementById('f_qty').value     = item.qty !== undefined ? item.qty : '';
   document.getElementById('f_mrp').closest('.form-row').classList.add('mrp-struck');
   document.getElementById('f_nlc').value     = item.nlc || '';
@@ -1643,19 +1795,17 @@ function submitProduct() {
   const discFull = hasFull ? (parseInt(document.getElementById('f_discFull').value) || 0) : 0;
   const discEMI  = hasEMI  ? (parseInt(document.getElementById('f_discEMI').value)  || 0) : 0;
 
-  const stock = document.getElementById('f_stock').value || 'in';
-  const qty   = document.getElementById('f_qty').value !== '' ? parseInt(document.getElementById('f_qty').value) : undefined;
+  const stock = parseInt(document.getElementById('f_stock').value) || 0;
   const newItem = {
     model,
     subcat: document.getElementById('f_subcat').value.trim() || 'Custom',
+    stock,
     mrp,
     nlc,
     discFull,
     priceFull: nlc - discFull,
     discEMI,
     priceEMI: nlc - discEMI,
-    stock,
-    qty,
     isNew: true,
   };
   if (isMac) {
@@ -1718,12 +1868,12 @@ function applyFilters() {
   filterMin     = document.getElementById('fl_min').value;
   filterMax     = document.getElementById('fl_max').value;
   filterModel   = document.getElementById('fl_model').value;
-  filterStock   = document.getElementById('fl_stock').value;
+  filterStock   = document.getElementById('fl_stock') ? document.getElementById('fl_stock').value : '';
   renderActiveFilterTags();
   renderContent();
 }
 function resetFilters() {
-  ['fl_sort','fl_disc','fl_storage','fl_model','fl_stock'].forEach(id => document.getElementById(id).value = '');
+  ['fl_sort','fl_disc','fl_storage','fl_model','fl_stock'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
   ['fl_min','fl_max'].forEach(id => document.getElementById(id).value = '');
   filterSort = filterDisc = filterStorage = filterMin = filterMax = filterModel = filterStock = '';
   renderActiveFilterTags();
@@ -1736,8 +1886,8 @@ function renderActiveFilterTags() {
     fl_disc: { has_disc:'Has Discount', no_disc:'No Discount' },
     fl_storage: { '128GB':'128GB','256GB':'256GB','512GB':'512GB','1TB':'1TB','2TB':'2TB' },
   };
+  if (filterStock)   tags.push({id:'fl_stock',   label:'Stock: '   + ({in:'In Stock',low:'Low (1-3)',out:'Out of Stock'}[filterStock]||filterStock)});
   if (filterModel)   tags.push({id:'fl_model',   label:'Model: '   + filterModel});
-  if (filterStock)   tags.push({id:'fl_stock',   label:'Stock: '   + ({ in:'In Stock', low:'Low Stock', out:'Out of Stock', order:'On Order' })[filterStock]});
   if (filterSort)    tags.push({id:'fl_sort',    label:'Sort: '    + labels.fl_sort[filterSort]});
   if (filterDisc)    tags.push({id:'fl_disc',    label:'Discount: '+ labels.fl_disc[filterDisc]});
   if (filterStorage) tags.push({id:'fl_storage', label:'Storage: ' + filterStorage});
@@ -1755,8 +1905,8 @@ function renderActiveFilterTags() {
 }
 function clearFilter(id) {
   document.getElementById(id).value = '';
-  if (id==='fl_model')   filterModel   = '';
   if (id==='fl_stock')   filterStock   = '';
+  if (id==='fl_model')   filterModel   = '';
   if (id==='fl_sort')    filterSort    = '';
   if (id==='fl_disc')    filterDisc    = '';
   if (id==='fl_storage') filterStorage = '';
