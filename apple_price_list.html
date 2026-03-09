@@ -1,0 +1,2018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apple Price List</title>
+<link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000;
+    --surface: #111;
+    --surface2: #1a1a1a;
+    --border: #2a2a2a;
+    --accent: #0A84FF;
+    --accent2: #30D158;
+    --text: #f5f5f7;
+    --text2: #a1a1a6;
+    --text3: #6e6e73;
+    --red: #FF453A;
+    --gold: #FFD60A;
+    --radius: 14px;
+    --font: -apple-system, 'SF Pro Display', BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Header */
+  .header {
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 0 24px;
+  }
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    height: 60px;
+  }
+  .logo {
+    font-size: 22px;
+    font-weight: 300;
+    color: var(--text);
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+  }
+  .logo span { color: var(--text2); }
+
+  /* Search */
+  .search-wrap {
+    flex: 1;
+    max-width: 400px;
+    position: relative;
+  }
+  .search-wrap svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text3);
+    pointer-events: none;
+  }
+  .search-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 12px 9px 38px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: var(--font);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-input::placeholder { color: var(--text3); }
+  .search-input:focus { border-color: var(--accent); }
+
+  /* Payment Toggle */
+  .pay-toggle {
+    display: flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .pay-btn {
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text3);
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: var(--font);
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .pay-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-radius: 8px;
+    margin: 2px;
+  }
+
+  /* Main Layout */
+  .main { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+
+  /* Category Tabs */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .tab {
+    padding: 10px 20px;
+    border-radius: 30px;
+    border: 1.5px solid var(--border);
+    background: none;
+    color: var(--text2);
+    font-size: 14px;
+    font-weight: 500;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .tab:hover { border-color: var(--text3); color: var(--text); }
+  .tab.active {
+    background: var(--text);
+    border-color: var(--text);
+    color: var(--bg);
+  }
+  .tab-count {
+    background: rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 1px 7px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .tab.active .tab-count { background: rgba(0,0,0,0.15); }
+
+  /* Sub-filter chips */
+  .subfilters {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    min-height: 32px;
+  }
+  .chip {
+    padding: 5px 13px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--text3);
+    font-size: 12px;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .chip:hover { border-color: var(--text3); color: var(--text2); }
+  .chip.active { border-color: var(--accent); color: var(--accent); background: rgba(10,132,255,0.1); }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: var(--text3);
+    align-items: center;
+  }
+  .stats-bar strong { color: var(--text); }
+
+  /* Grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: all 0.2s;
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+  }
+  .card:hover {
+    border-color: #3a3a3a;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  }
+  .card-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: rgba(48,209,88,0.15);
+    border: 1px solid rgba(48,209,88,0.3);
+    color: var(--accent2);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .card-badge.no-disc {
+    background: rgba(99,99,102,0.15);
+    border-color: rgba(99,99,102,0.3);
+    color: var(--text3);
+  }
+  .card-model {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+    margin-bottom: 6px;
+    padding-right: 70px;
+  }
+  .card-desc {
+    font-size: 11.5px;
+    color: var(--text3);
+    line-height: 1.5;
+    margin-bottom: 14px;
+  }
+  .card-specs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .spec-pill {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px 9px;
+    font-size: 11px;
+    color: var(--text2);
+  }
+  .spec-pill.ram { color: #BF5AF2; border-color: rgba(191,90,242,0.3); background: rgba(191,90,242,0.08); }
+  .spec-pill.storage { color: var(--accent); border-color: rgba(10,132,255,0.3); background: rgba(10,132,255,0.08); }
+  .divider { height: 1px; background: var(--border); margin: 14px 0; }
+  .price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .price-label { font-size: 12px; color: var(--text3); }
+  .price-val { font-size: 14px; font-weight: 600; color: var(--text); }
+  .price-val.mrp { font-size: 13px; color: var(--text2); text-decoration: none; font-weight: 400; }
+  .price-val.final {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent2);
+  }
+  .savings-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255,214,10,0.1);
+    border: 1px solid rgba(255,214,10,0.25);
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    margin-top: 8px;
+  }
+
+  /* Table view toggle */
+  .view-toggle {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+  }
+  .view-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 10px;
+    color: var(--text3);
+    cursor: pointer;
+    font-family: var(--font);
+    transition: all 0.2s;
+  }
+  .view-btn.active { border-color: var(--text3); color: var(--text); background: var(--surface); }
+
+  /* Table View */
+  .table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    background: var(--surface2);
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+  tbody td { padding: 12px 16px; color: var(--text2); vertical-align: middle; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .td-final { color: var(--accent2) !important; font-weight: 700; }
+  .td-mrp { text-decoration: none; color: var(--text2) !important; font-weight: 400; }
+  .td-disc { color: var(--gold) !important; font-weight: 600; }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text3);
+    grid-column: 1/-1;
+  }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+  .empty h3 { font-size: 18px; color: var(--text2); margin-bottom: 6px; }
+
+  /* Discount Info Card */
+  .discount-info {
+    background: linear-gradient(135deg, rgba(10,132,255,0.08), rgba(48,209,88,0.05));
+    border: 1px solid rgba(10,132,255,0.2);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 28px;
+  }
+  .discount-info h3 { font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 12px; }
+  .discount-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+  .disc-item {
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+    padding: 10px 14px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .disc-item-name { font-size: 12px; font-weight: 600; color: var(--text); }
+  .disc-item-vals { font-size: 11px; color: var(--text3); margin-top: 3px; line-height: 1.5; }
+
+  @media (max-width: 640px) {
+    .header-inner { gap: 12px; }
+    .logo { font-size: 17px; }
+    .main { padding: 20px 16px; }
+    .grid { grid-template-columns: 1fr; }
+    .pay-btn { padding: 7px 10px; font-size: 11px; }
+  }
+
+  /* FAB */
+  .fab {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 14px 22px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 20px rgba(10,132,255,0.4);
+    transition: all 0.2s;
+    z-index: 200;
+  }
+  .fab:hover { background: #1a8fff; transform: translateY(-2px); box-shadow: 0 6px 28px rgba(10,132,255,0.5); }
+  .fab:active { transform: scale(0.97); }
+
+  /* Modal Overlay */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(8px);
+    z-index: 300;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+
+  /* Modal Box */
+  .modal {
+    background: #161616;
+    border: 1px solid #2e2e2e;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 540px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 28px;
+    animation: modalIn 0.2s ease;
+  }
+  @keyframes modalIn {
+    from { opacity:0; transform: scale(0.95) translateY(10px); }
+    to   { opacity:1; transform: scale(1) translateY(0); }
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .modal-title { font-size: 18px; font-weight: 700; color: var(--text); }
+  .modal-close {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text2);
+    font-size: 16px;
+    transition: all 0.15s;
+  }
+  .modal-close:hover { background: var(--border); color: var(--text); }
+
+  /* Form */
+  .form-row { margin-bottom: 16px; }
+  .form-row label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text3);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .form-row input, .form-row select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: var(--font);
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .form-row input:focus, .form-row select:focus { border-color: var(--accent); }
+  .form-row select option { background: #161616; }
+  .form-row input::placeholder { color: var(--text3); }
+  .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--accent);
+    margin: 20px 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(10,132,255,0.2);
+  }
+
+  .disc-toggle-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .disc-check {
+    flex: 1;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 13px;
+    color: var(--text2);
+    font-weight: 500;
+  }
+  .disc-check input[type=checkbox] { accent-color: var(--accent); width: 15px; height: 15px; }
+  .disc-check.checked { border-color: var(--accent); background: rgba(10,132,255,0.06); color: var(--text); }
+
+  .form-row input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .btn-submit {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    margin-top: 24px;
+    transition: all 0.2s;
+  }
+  .btn-submit:hover { background: #1a8fff; }
+  .btn-submit:active { transform: scale(0.98); }
+
+  .toast {
+    position: fixed;
+    bottom: 90px;
+    right: 28px;
+    background: var(--accent2);
+    color: #000;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 10px 18px;
+    border-radius: 30px;
+    z-index: 400;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+
+  .card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .btn-edit, .btn-delete {
+    flex: 1;
+    padding: 8px 0;
+    border-radius: 9px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+  .btn-edit {
+    background: rgba(10,132,255,0.12);
+    color: var(--accent);
+    border: 1px solid rgba(10,132,255,0.25);
+  }
+  .btn-edit:hover { background: rgba(10,132,255,0.22); }
+  .btn-delete {
+    background: rgba(255,69,58,0.1);
+    color: #FF453A;
+    border: 1px solid rgba(255,69,58,0.2);
+  }
+  .btn-delete:hover { background: rgba(255,69,58,0.2); }
+  .td-actions { white-space: nowrap; }
+  .td-actions button {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    border: none;
+    margin-right: 5px;
+    transition: all 0.15s;
+  }
+  .td-btn-edit { background: rgba(10,132,255,0.12); color: var(--accent); border: 1px solid rgba(10,132,255,0.25) !important; }
+  .td-btn-edit:hover { background: rgba(10,132,255,0.22); }
+  .td-btn-del { background: rgba(255,69,58,0.1); color: #FF453A; border: 1px solid rgba(255,69,58,0.2) !important; }
+  .td-btn-del:hover { background: rgba(255,69,58,0.2); }
+
+
+
+
+  /* Backup */
+  .fab-group {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    z-index: 200;
+  }
+  .fab-small {
+    background: var(--surface2);
+    color: var(--text2);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    transition: all 0.2s;
+  }
+  .fab-small:hover { background: var(--border); color: var(--text); transform: translateY(-1px); }
+  .fab-small.restore { color: var(--accent2); border-color: rgba(48,209,88,0.3); background: rgba(48,209,88,0.07); }
+  .fab-small.restore:hover { background: rgba(48,209,88,0.15); }
+
+
+  /* Header action buttons */
+  .header-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .hdr-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 7px 12px;
+    color: var(--text2);
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .hdr-btn:hover { border-color: var(--text3); color: var(--text); background: var(--surface2); }
+
+  .hdr-btn-fb { color: #FFA500; border-color: rgba(255,165,0,0.3); background: rgba(255,165,0,0.07); gap: 7px; }
+  .hdr-btn-fb:hover { background: rgba(255,165,0,0.15); border-color: rgba(255,165,0,0.5); }
+  .hdr-btn-fb-cfg { padding: 7px 9px; color: var(--text3); }
+  .hdr-btn-fb-cfg:hover { color: var(--text); }
+  .hdr-btn-green { color: var(--accent2); border-color: rgba(48,209,88,0.3); background: rgba(48,209,88,0.07); }
+  .hdr-btn-green:hover { background: rgba(48,209,88,0.15); border-color: rgba(48,209,88,0.5); }
+  @media (max-width: 768px) {
+    .hdr-btn span.btn-label { display: none; }
+    .hdr-btn { padding: 7px 9px; }
+  }
+
+  /* Filter Bar */
+  .filter-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: none;
+  }
+  .filter-bar.open { display: block; }
+  .filter-bar-inner {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+    align-items: end;
+  }
+  .filter-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+  .filter-group select,
+  .filter-group input[type=number] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: var(--font);
+    outline: none;
+    -webkit-appearance: none;
+    transition: border-color 0.2s;
+  }
+  .filter-group select:focus,
+  .filter-group input[type=number]:focus { border-color: var(--accent); }
+  .filter-group select option { background: #1a1a1a; }
+  .price-range-row { display: flex; gap: 8px; align-items: center; }
+  .price-range-row span { color: var(--text3); font-size: 12px; }
+  .filter-actions {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+  .btn-filter-reset {
+    width: 100%;
+    padding: 8px 16px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    color: var(--text3);
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-filter-reset:hover { border-color: var(--text3); color: var(--text); }
+  .filter-toggle-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 14px;
+    color: var(--text3);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .filter-toggle-btn:hover { border-color: var(--text3); color: var(--text); }
+  .filter-toggle-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(10,132,255,0.08); }
+  .filter-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: none;
+  }
+  .filter-dot.visible { display: inline-block; }
+  .active-filters-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .active-filter-tag {
+    background: rgba(10,132,255,0.1);
+    border: 1px solid rgba(10,132,255,0.3);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px 3px 10px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .active-filter-tag button {
+    background: none;
+    border: none;
+    color: var(--accent);
+    cursor: pointer;
+    font-size: 12px;
+    padding: 0;
+    line-height: 1;
+    opacity: 0.7;
+  }
+  .active-filter-tag button:hover { opacity: 1; }
+
+  .mrp-struck label { text-decoration: line-through; color: var(--red) !important; opacity: 0.7; }
+  .mrp-struck input { text-decoration: line-through; color: var(--red); opacity: 0.6; }
+  .new-badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: rgba(10,132,255,0.15);
+    border: 1px solid rgba(10,132,255,0.4);
+    color: var(--accent);
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 20px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">&#xf8ff; <span>Price List</span></div>
+    <div class="search-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" class="search-input" id="search" placeholder="Search models..." />
+    </div>
+    <div class="pay-toggle">
+      <button class="pay-btn active" data-pay="full" onclick="setPayment('full')">Full Swipe</button>
+      <button class="pay-btn" data-pay="emi" onclick="setPayment('emi')">6M EMI</button>
+    </div>
+    <div class="header-actions">
+      <button class="hdr-btn hdr-btn-fb" id="fbStatusBtn" onclick="fbSaveNow()" title="Firebase not configured">
+        <span id="fbDot" style="width:8px;height:8px;border-radius:50%;background:#6e6e73;display:inline-block;flex-shrink:0"></span>
+        ☁️ Firebase
+      </button>
+      <button class="hdr-btn hdr-btn-fb-cfg" onclick="openFbConfig()" title="Configure Firebase">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <button class="hdr-btn" onclick="restoreBackup()" title="Restore Backup">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Restore
+      </button>
+      <button class="hdr-btn" onclick="downloadBackup()" title="Backup JSON">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Backup
+      </button>
+      <button class="hdr-btn hdr-btn-green" onclick="exportExcel()" title="Export Excel">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        Excel
+      </button>
+    </div>
+    <div class="view-toggle">
+      <button class="view-btn active" id="gridBtn" onclick="setView('grid')" title="Grid">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      </button>
+      <button class="view-btn" id="tableBtn" onclick="setView('table')" title="Table">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+  <div class="tabs" id="tabs"></div>
+  <div class="subfilters" id="subfilters"></div>
+  <div class="stats-bar" id="statsBar"></div>
+  <div class="filter-bar" id="filterBar">
+    <div class="filter-bar-inner">
+      <div class="filter-group">
+        <label>Sort By</label>
+        <select id="fl_sort" onchange="applyFilters()">
+          <option value="">Default</option>
+          <option value="price_asc">Price: Low to High</option>
+          <option value="price_desc">Price: High to Low</option>
+          <option value="savings_desc">Most Savings</option>
+          <option value="mrp_asc">MRP: Low to High</option>
+          <option value="mrp_desc">MRP: High to Low</option>
+          <option value="name_asc">Name: A–Z</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Discount</label>
+        <select id="fl_disc" onchange="applyFilters()">
+          <option value="">All</option>
+          <option value="has_disc">Has Card Discount</option>
+          <option value="no_disc">No Discount</option>
+        </select>
+      </div>
+      <div class="filter-group" id="fl_storage_group">
+        <label>Storage</label>
+        <select id="fl_storage" onchange="applyFilters()">
+          <option value="">All</option>
+          <option value="128GB">128GB</option>
+          <option value="256GB">256GB</option>
+          <option value="512GB">512GB</option>
+          <option value="1TB">1TB</option>
+          <option value="2TB">2TB</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Model / Series</label>
+        <select id="fl_model" onchange="applyFilters()">
+          <option value="">All Models</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Price Range (&#8377;)</label>
+        <div class="price-range-row">
+          <input type="number" id="fl_min" placeholder="Min" oninput="applyFilters()" />
+          <span>–</span>
+          <input type="number" id="fl_max" placeholder="Max" oninput="applyFilters()" />
+        </div>
+      </div>
+      <div class="filter-actions filter-group">
+        <label>&nbsp;</label>
+        <button class="btn-filter-reset" onclick="resetFilters()">&#x21BA; Reset Filters</button>
+      </div>
+    </div>
+  </div>
+  <div id="activeFiltersRow" class="active-filters-row"></div>
+  <div id="discountPanel"></div>
+  <div id="contentArea"></div>
+</main>
+
+<!-- FAB Group -->
+<div class="fab-group">
+  <button class="fab" onclick="openModal()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Add Product
+  </button>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">&#10003; Product added!</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal_title">Add New Product</div>
+      <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+    </div>
+    <div class="form-row">
+      <label>Category</label>
+      <select id="f_category" onchange="onCategoryChange()">
+        <option value="IPHONE">iPhone</option>
+        <option value="IPAD">iPad</option>
+        <option value="MACBOOK">Mac</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Model Name *</label>
+      <input type="text" id="f_model" placeholder="e.g. iPhone 17 Pro Max 512GB" />
+    </div>
+    <div class="form-row">
+      <label>Sub-category / Series</label>
+      <input type="text" id="f_subcat" placeholder="e.g. iPhone 17 Pro" />
+    </div>
+    <div class="form-row" id="row_desc" style="display:none">
+      <label>Description</label>
+      <input type="text" id="f_desc" placeholder="e.g. M4 Pro 12-core CPU 16-core GPU" />
+    </div>
+    <div id="row_specs" style="display:none">
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label>RAM</label>
+          <input type="text" id="f_ram" placeholder="e.g. 16GB" />
+        </div>
+        <div class="form-row">
+          <label>Storage</label>
+          <input type="text" id="f_storage" placeholder="e.g. 512GB" />
+        </div>
+      </div>
+    </div>
+    <div class="section-label">Pricing</div>
+    <div class="form-grid-2">
+      <div class="form-row">
+        <label>MRP (&#8377;) *</label>
+        <input type="number" id="f_mrp" placeholder="e.g. 139900" />
+      </div>
+      <div class="form-row">
+        <label>Dealer / NLC Price (&#8377;) *</label>
+        <input type="number" id="f_nlc" placeholder="e.g. 128000" />
+      </div>
+    </div>
+    <div class="section-label">Card Discounts</div>
+    <div class="disc-toggle-row">
+      <label class="disc-check" id="lbl_full">
+        <input type="checkbox" id="chk_full" onchange="toggleDisc('full')" /> Full Swipe Discount
+      </label>
+    </div>
+    <div id="row_full_disc" style="display:none" class="form-row">
+      <label>Full Swipe Discount Amount (&#8377;)</label>
+      <input type="number" id="f_discFull" placeholder="e.g. 3000" />
+    </div>
+    <div id="row_emi_toggle">
+      <div class="disc-toggle-row">
+        <label class="disc-check" id="lbl_emi">
+          <input type="checkbox" id="chk_emi" onchange="toggleDisc('emi')" /> 6-Month EMI Discount
+        </label>
+      </div>
+      <div id="row_emi_disc" style="display:none" class="form-row">
+        <label>6-Month EMI Discount Amount (&#8377;)</label>
+        <input type="number" id="f_discEMI" placeholder="e.g. 4000" />
+      </div>
+    </div>
+    <div id="form_error" style="color:#FF453A;font-size:13px;margin-top:12px;display:none"></div>
+    <input type="hidden" id="f_edit_cat" />
+    <input type="hidden" id="f_edit_idx" />
+    <button class="btn-submit" id="btn_submit" onclick="submitProduct()">Add to Price List</button>
+  </div>
+</div>
+
+<script>
+const fmt = n => '₹' + Number(n).toLocaleString('en-IN');
+const savings = (mrp, final) => {
+  const s = Number(String(mrp).replace(/,/g,'')) - final;
+  return s > 0 ? s : 0;
+};
+const parseMRP = v => Number(String(v||'0').replace(/,/g,'')) || 0;
+
+let currentCategory = 'IPHONE';
+let currentPayment = 'full';
+let currentView = 'grid';
+let currentSubfilter = 'all';
+let searchQuery = '';
+let filterSort = '';
+let filterDisc = '';
+let filterStorage = '';
+let filterMin = '';
+let filterMax = '';
+let filterModel = '';
+
+// ── DATA ──────────────────────────────────────────────────────────────
+const data = {
+  IPHONE: [
+    {model:'13 128GB (Midnight/Starlight/Blue)',mrp:49900,nlc:44660,discFull:0,priceFull:44660,discEMI:0,priceEMI:44660},
+    {model:'14 128GB (Blue/Midnight/Starlight)',mrp:54900,nlc:52704,discFull:0,priceFull:52704,discEMI:0,priceEMI:52704},
+    {model:'14 256GB',mrp:64900,nlc:62304,discFull:0,priceFull:62304,discEMI:0,priceEMI:62304},
+    {model:'15 128GB (Black/Blue/Pink)',mrp:59900,nlc:52841,discFull:1000,priceFull:51841,discEMI:2000,priceEMI:50841},
+    {model:'15 256GB (Black/Blue/Pink)',mrp:69900,nlc:62466,discFull:1000,priceFull:61466,discEMI:2000,priceEMI:60466},
+    {model:'15 Plus 128GB',mrp:69900,nlc:67104,discFull:0,priceFull:67104,discEMI:0,priceEMI:67104},
+    {model:'15 Plus 256GB',mrp:79900,nlc:76704,discFull:0,priceFull:76704,discEMI:0,priceEMI:76704},
+    {model:'15 Plus 512GB',mrp:99900,nlc:95904,discFull:0,priceFull:95904,discEMI:0,priceEMI:95904},
+    {model:'16 128GB',mrp:69900,nlc:62466,discFull:2000,priceFull:60466,discEMI:3000,priceEMI:59466},
+    {model:'16 256GB',mrp:79900,nlc:76704,discFull:2000,priceFull:74704,discEMI:3000,priceEMI:73704},
+    {model:'16 512GB',mrp:99900,nlc:95904,discFull:2000,priceFull:93904,discEMI:3000,priceEMI:92904},
+    {model:'16 Plus 128GB',mrp:79900,nlc:72091,discFull:2000,priceFull:70091,discEMI:3000,priceEMI:69091},
+    {model:'16 Plus 256GB',mrp:89900,nlc:81716,discFull:2000,priceFull:79716,discEMI:3000,priceEMI:78716},
+    {model:'16 Plus 512GB',mrp:109900,nlc:105504,discFull:2000,priceFull:103504,discEMI:3000,priceEMI:102504},
+    {model:'16 Pro 128GB',mrp:109900,nlc:105504,discFull:0,priceFull:105504,discEMI:0,priceEMI:105504},
+    {model:'16 Pro 256GB',mrp:119900,nlc:115104,discFull:0,priceFull:115104,discEMI:0,priceEMI:115104},
+    {model:'16 Pro 512GB',mrp:139900,nlc:134304,discFull:0,priceFull:134304,discEMI:0,priceEMI:134304},
+    {model:'16 Pro 1TB',mrp:159900,nlc:153504,discFull:0,priceFull:153504,discEMI:0,priceEMI:153504},
+    {model:'16 Pro Max 256GB',mrp:134900,nlc:129504,discFull:0,priceFull:129504,discEMI:0,priceEMI:129504},
+    {model:'16 Pro Max 512GB',mrp:154900,nlc:148704,discFull:0,priceFull:148704,discEMI:0,priceEMI:148704},
+    {model:'16 Pro Max 1TB',mrp:174900,nlc:167904,discFull:0,priceFull:167904,discEMI:0,priceEMI:167904},
+    {model:'iPhone 16e 128GB',mrp:59900,nlc:52841,discFull:2000,priceFull:50841,discEMI:2000,priceEMI:50841},
+    {model:'iPhone 16e 256GB',mrp:69900,nlc:62466,discFull:2000,priceFull:60466,discEMI:2000,priceEMI:60466},
+    {model:'iPhone 16e 512GB',mrp:89900,nlc:81716,discFull:2000,priceFull:79716,discEMI:2000,priceEMI:79716},
+    {model:'iPhone 17 256GB',mrp:82900,nlc:79584,discFull:1000,priceFull:78584,discEMI:3000,priceEMI:76584},
+    {model:'iPhone 17 512GB',mrp:102900,nlc:98784,discFull:1000,priceFull:97784,discEMI:3000,priceEMI:95784},
+    {model:'iPhone Air 256GB',mrp:119900,nlc:98079,discFull:3000,priceFull:95079,discEMI:4000,priceEMI:94079},
+    {model:'iPhone Air 512GB',mrp:139900,nlc:117329,discFull:3000,priceFull:114329,discEMI:4000,priceEMI:113329},
+    {model:'iPhone Air 1TB',mrp:159900,nlc:136579,discFull:3000,priceFull:133579,discEMI:4000,priceEMI:132579},
+    {model:'iPhone 17 Pro 256GB',mrp:134900,nlc:129504,discFull:3000,priceFull:126504,discEMI:4000,priceEMI:125504},
+    {model:'iPhone 17 Pro 512GB',mrp:154900,nlc:148704,discFull:3000,priceFull:145704,discEMI:4000,priceEMI:144704},
+    {model:'iPhone 17 Pro 1TB',mrp:174900,nlc:167904,discFull:3000,priceFull:164904,discEMI:4000,priceEMI:163904},
+    {model:'iPhone 17 Pro Max 256GB',mrp:149900,nlc:143904,discFull:3000,priceFull:140904,discEMI:4000,priceEMI:139904},
+    {model:'iPhone 17 Pro Max 512GB',mrp:169900,nlc:163104,discFull:3000,priceFull:160104,discEMI:4000,priceEMI:159104},
+    {model:'iPhone 17 Pro Max 1TB',mrp:189900,nlc:182304,discFull:3000,priceFull:179304,discEMI:4000,priceEMI:178304},
+    {model:'iPhone 17 Pro Max 2TB',mrp:229900,nlc:220704,discFull:3000,priceFull:217704,discEMI:4000,priceEMI:216704},
+  ],
+  IPAD: [
+    {model:'11" iPad Wi-Fi 128GB — 11th Gen A16',mrp:34900,nlc:32806,discFull:2000,priceFull:30806,discEMI:2000,priceEMI:30806,subcat:'iPad 11th Gen'},
+    {model:'11" iPad Wi-Fi 256GB — 11th Gen A16',mrp:44900,nlc:42206,discFull:2000,priceFull:40206,discEMI:2000,priceEMI:40206,subcat:'iPad 11th Gen'},
+    {model:'11" iPad Wi-Fi 512GB — 11th Gen A16',mrp:64900,nlc:61006,discFull:2000,priceFull:59006,discEMI:2000,priceEMI:59006,subcat:'iPad 11th Gen'},
+    {model:'11" iPad Wi-Fi+Cell 128GB — 11th Gen A16',mrp:49900,nlc:46906,discFull:2000,priceFull:44906,discEMI:2000,priceEMI:44906,subcat:'iPad 11th Gen'},
+    {model:'11" iPad Wi-Fi+Cell 256GB — 11th Gen A16',mrp:59900,nlc:56306,discFull:2000,priceFull:54306,discEMI:2000,priceEMI:54306,subcat:'iPad 11th Gen'},
+    {model:'11" iPad Wi-Fi+Cell 512GB — 11th Gen A16',mrp:79900,nlc:75106,discFull:2000,priceFull:73106,discEMI:2000,priceEMI:73106,subcat:'iPad 11th Gen'},
+    {model:'11" iPad Air Wi-Fi 128GB — M3',mrp:59900,nlc:56306,discFull:3000,priceFull:53306,discEMI:3000,priceEMI:53306,subcat:'iPad Air M3'},
+    {model:'11" iPad Air Wi-Fi 256GB — M3',mrp:69900,nlc:65706,discFull:3000,priceFull:62706,discEMI:3000,priceEMI:62706,subcat:'iPad Air M3'},
+    {model:'11" iPad Air Wi-Fi 512GB — M3',mrp:89900,nlc:84506,discFull:3000,priceFull:81506,discEMI:3000,priceEMI:81506,subcat:'iPad Air M3'},
+    {model:'11" iPad Air Wi-Fi 1TB — M3',mrp:109900,nlc:103306,discFull:3000,priceFull:100306,discEMI:3000,priceEMI:100306,subcat:'iPad Air M3'},
+    {model:'11" iPad Air Wi-Fi+Cell 128GB — M3',mrp:74900,nlc:70406,discFull:3000,priceFull:67406,discEMI:3000,priceEMI:67406,subcat:'iPad Air M3'},
+    {model:'11" iPad Air Wi-Fi+Cell 256GB — M3',mrp:84900,nlc:79806,discFull:3000,priceFull:76806,discEMI:3000,priceEMI:76806,subcat:'iPad Air M3'},
+    {model:'11" iPad Air Wi-Fi+Cell 512GB — M3',mrp:104900,nlc:98606,discFull:3000,priceFull:95606,discEMI:3000,priceEMI:95606,subcat:'iPad Air M3'},
+    {model:'11" iPad Air Wi-Fi+Cell 1TB — M3',mrp:124900,nlc:117406,discFull:3000,priceFull:114406,discEMI:3000,priceEMI:114406,subcat:'iPad Air M3'},
+    {model:'13" iPad Air Wi-Fi 128GB — M3',mrp:79900,nlc:75106,discFull:3000,priceFull:72106,discEMI:3000,priceEMI:72106,subcat:'iPad Air M3'},
+    {model:'13" iPad Air Wi-Fi 256GB — M3',mrp:89900,nlc:84506,discFull:3000,priceFull:81506,discEMI:3000,priceEMI:81506,subcat:'iPad Air M3'},
+    {model:'13" iPad Air Wi-Fi 512GB — M3',mrp:109900,nlc:103306,discFull:3000,priceFull:100306,discEMI:3000,priceEMI:100306,subcat:'iPad Air M3'},
+    {model:'13" iPad Air Wi-Fi 1TB — M3',mrp:129900,nlc:122106,discFull:3000,priceFull:119106,discEMI:3000,priceEMI:119106,subcat:'iPad Air M3'},
+    {model:'13" iPad Air Wi-Fi+Cell 128GB — M3',mrp:94900,nlc:89206,discFull:3000,priceFull:86206,discEMI:3000,priceEMI:86206,subcat:'iPad Air M3'},
+    {model:'13" iPad Air Wi-Fi+Cell 256GB — M3',mrp:104900,nlc:98606,discFull:3000,priceFull:95606,discEMI:3000,priceEMI:95606,subcat:'iPad Air M3'},
+    {model:'13" iPad Air Wi-Fi+Cell 512GB — M3',mrp:124900,nlc:117406,discFull:3000,priceFull:114406,discEMI:3000,priceEMI:114406,subcat:'iPad Air M3'},
+    {model:'13" iPad Air Wi-Fi+Cell 1TB — M3',mrp:144900,nlc:136206,discFull:3000,priceFull:133206,discEMI:3000,priceEMI:133206,subcat:'iPad Air M3'},
+    {model:'iPad mini Wi-Fi 128GB (7th Gen)',mrp:49900,nlc:46906,discFull:3000,priceFull:43906,discEMI:3000,priceEMI:43906,subcat:'iPad mini'},
+    {model:'iPad mini Wi-Fi 256GB (7th Gen)',mrp:59900,nlc:56306,discFull:3000,priceFull:53306,discEMI:3000,priceEMI:53306,subcat:'iPad mini'},
+    {model:'iPad mini Wi-Fi 512GB (7th Gen)',mrp:79900,nlc:75106,discFull:3000,priceFull:72106,discEMI:3000,priceEMI:72106,subcat:'iPad mini'},
+    {model:'iPad mini Wi-Fi+Cell 128GB (7th Gen)',mrp:64900,nlc:61006,discFull:3000,priceFull:58006,discEMI:3000,priceEMI:58006,subcat:'iPad mini'},
+    {model:'iPad mini Wi-Fi+Cell 256GB (7th Gen)',mrp:74900,nlc:70406,discFull:3000,priceFull:67406,discEMI:3000,priceEMI:67406,subcat:'iPad mini'},
+    {model:'iPad mini Wi-Fi+Cell 512GB (7th Gen)',mrp:94900,nlc:89206,discFull:3000,priceFull:86206,discEMI:3000,priceEMI:86206,subcat:'iPad mini'},
+    {model:'11" iPad Pro Wi-Fi 256GB Std Glass (6th Gen)',mrp:99900,nlc:93906,discFull:3000,priceFull:90906,discEMI:3000,priceEMI:90906,subcat:'iPad Pro'},
+    {model:'11" iPad Pro Wi-Fi 512GB Std Glass (6th Gen)',mrp:119900,nlc:112706,discFull:3000,priceFull:109706,discEMI:3000,priceEMI:109706,subcat:'iPad Pro'},
+    {model:'11" iPad Pro Wi-Fi 1TB Std Glass (6th Gen)',mrp:159900,nlc:150306,discFull:3000,priceFull:147306,discEMI:3000,priceEMI:147306,subcat:'iPad Pro'},
+    {model:'11" iPad Pro Wi-Fi 1TB Nano Glass (6th Gen)',mrp:169900,nlc:159706,discFull:3000,priceFull:156706,discEMI:3000,priceEMI:156706,subcat:'iPad Pro'},
+    {model:'11" iPad Pro Wi-Fi 2TB Std Glass (6th Gen)',mrp:199900,nlc:187906,discFull:3000,priceFull:184906,discEMI:3000,priceEMI:184906,subcat:'iPad Pro'},
+    {model:'11" iPad Pro Wi-Fi 2TB Nano Glass (6th Gen)',mrp:209900,nlc:197306,discFull:3000,priceFull:194306,discEMI:3000,priceEMI:194306,subcat:'iPad Pro'},
+    {model:'11" iPad Pro Wi-Fi+Cell 256GB Std Glass (6th Gen)',mrp:119900,nlc:112706,discFull:3000,priceFull:109706,discEMI:3000,priceEMI:109706,subcat:'iPad Pro'},
+    {model:'11" iPad Pro Wi-Fi+Cell 512GB Std Glass (6th Gen)',mrp:139900,nlc:131506,discFull:3000,priceFull:128506,discEMI:3000,priceEMI:128506,subcat:'iPad Pro'},
+    {model:'11" iPad Pro Wi-Fi+Cell 1TB Std Glass (6th Gen)',mrp:179900,nlc:169106,discFull:3000,priceFull:166106,discEMI:3000,priceEMI:166106,subcat:'iPad Pro'},
+    {model:'11" iPad Pro Wi-Fi+Cell 1TB Nano Glass (6th Gen)',mrp:189900,nlc:178506,discFull:3000,priceFull:175506,discEMI:3000,priceEMI:175506,subcat:'iPad Pro'},
+    {model:'11" iPad Pro Wi-Fi+Cell 2TB Std Glass (6th Gen)',mrp:219900,nlc:206706,discFull:3000,priceFull:203706,discEMI:3000,priceEMI:203706,subcat:'iPad Pro'},
+    {model:'11" iPad Pro Wi-Fi+Cell 2TB Nano Glass (6th Gen)',mrp:229900,nlc:216106,discFull:3000,priceFull:213106,discEMI:3000,priceEMI:213106,subcat:'iPad Pro'},
+    {model:'13" iPad Pro Wi-Fi 256GB Std Glass (8th Gen)',mrp:129900,nlc:122106,discFull:3000,priceFull:119106,discEMI:3000,priceEMI:119106,subcat:'iPad Pro'},
+    {model:'13" iPad Pro Wi-Fi 512GB Std Glass (8th Gen)',mrp:149900,nlc:140906,discFull:3000,priceFull:137906,discEMI:3000,priceEMI:137906,subcat:'iPad Pro'},
+    {model:'13" iPad Pro Wi-Fi 1TB Std Glass (8th Gen)',mrp:189900,nlc:178506,discFull:3000,priceFull:175506,discEMI:3000,priceEMI:175506,subcat:'iPad Pro'},
+    {model:'13" iPad Pro Wi-Fi 1TB Nano Glass (8th Gen)',mrp:199900,nlc:187906,discFull:3000,priceFull:184906,discEMI:3000,priceEMI:184906,subcat:'iPad Pro'},
+    {model:'13" iPad Pro Wi-Fi 2TB Std Glass (8th Gen)',mrp:229900,nlc:216106,discFull:3000,priceFull:213106,discEMI:3000,priceEMI:213106,subcat:'iPad Pro'},
+    {model:'13" iPad Pro Wi-Fi 2TB Nano Glass (8th Gen)',mrp:239900,nlc:225506,discFull:3000,priceFull:222506,discEMI:3000,priceEMI:222506,subcat:'iPad Pro'},
+    {model:'13" iPad Pro Wi-Fi+Cell 256GB Std Glass (8th Gen)',mrp:149900,nlc:140906,discFull:3000,priceFull:137906,discEMI:3000,priceEMI:137906,subcat:'iPad Pro'},
+    {model:'13" iPad Pro Wi-Fi+Cell 512GB Std Glass (8th Gen)',mrp:169900,nlc:159706,discFull:3000,priceFull:156706,discEMI:3000,priceEMI:156706,subcat:'iPad Pro'},
+    {model:'13" iPad Pro Wi-Fi+Cell 1TB Std Glass (8th Gen)',mrp:209900,nlc:197306,discFull:3000,priceFull:194306,discEMI:3000,priceEMI:194306,subcat:'iPad Pro'},
+    {model:'13" iPad Pro Wi-Fi+Cell 1TB Nano Glass (8th Gen)',mrp:219900,nlc:206706,discFull:3000,priceFull:203706,discEMI:3000,priceEMI:203706,subcat:'iPad Pro'},
+    {model:'13" iPad Pro Wi-Fi+Cell 2TB Std Glass (8th Gen)',mrp:249900,nlc:234906,discFull:3000,priceFull:231906,discEMI:3000,priceEMI:231906,subcat:'iPad Pro'},
+    {model:'13" iPad Pro Wi-Fi+Cell 2TB Nano Glass (8th Gen)',mrp:259900,nlc:244306,discFull:3000,priceFull:241306,discEMI:3000,priceEMI:241306,subcat:'iPad Pro'},
+  ],
+  MACBOOK: [
+    {model:'13" MacBook Air M1',desc:'M1 8-core CPU 7-core GPU',ram:'8GB',storage:'256GB',mrp:74900,nlc:68534,discFull:0,priceFull:68534,subcat:'MacBook Air M1'},
+    {model:'13" MacBook Air M2',desc:'M2 8-core CPU 8-core GPU',ram:'16GB',storage:'256GB',mrp:85900,nlc:78599,discFull:5000,priceFull:73599,subcat:'MacBook Air M2'},
+    {model:'13" MacBook Air M2',desc:'M2 8-core CPU 8-core GPU',ram:'—',storage:'256GB',mrp:89900,nlc:82259,discFull:5000,priceFull:77259,subcat:'MacBook Air M2'},
+    {model:'13" MacBook Air M2',desc:'M2 8-core CPU 10-core GPU',ram:'—',storage:'512GB',mrp:109900,nlc:100559,discFull:5000,priceFull:95559,subcat:'MacBook Air M2'},
+    {model:'15" MacBook Air M2',desc:'M2 8-core CPU 10-core GPU',ram:'—',storage:'512GB',mrp:144900,nlc:132584,discFull:5000,priceFull:127584,subcat:'MacBook Air M2'},
+    {model:'15" MacBook Air M2',desc:'M2 8-core CPU 10-core GPU',ram:'—',storage:'256GB',mrp:124900,nlc:114284,discFull:5000,priceFull:109284,subcat:'MacBook Air M2'},
+    {model:'13" MacBook Air M3',desc:'M3 8-core CPU 10-core GPU',ram:'16GB',storage:'512GB',mrp:109900,nlc:100559,discFull:0,priceFull:100559,subcat:'MacBook Air M3'},
+    {model:'13" MacBook Air M3',desc:'M3 8-core CPU 10-core GPU',ram:'8GB',storage:'512GB',mrp:124900,nlc:114284,discFull:0,priceFull:114284,subcat:'MacBook Air M3'},
+    {model:'13" MacBook Air M3',desc:'M3 8-core CPU 10-core GPU',ram:'24GB',storage:'512GB',mrp:129900,nlc:118859,discFull:0,priceFull:118859,subcat:'MacBook Air M3'},
+    {model:'13" MacBook Air M3',desc:'M3 8-core CPU 8-core GPU',ram:'16GB',storage:'256GB',mrp:89900,nlc:82259,discFull:0,priceFull:82259,subcat:'MacBook Air M3'},
+    {model:'13" MacBook Air M3',desc:'M3 8-core CPU 8-core GPU',ram:'8GB',storage:'256GB',mrp:104900,nlc:95984,discFull:0,priceFull:95984,subcat:'MacBook Air M3'},
+    {model:'15" MacBook Air M3',desc:'M3 8-core CPU 10-core GPU',ram:'8GB',storage:'256GB',mrp:124900,nlc:114284,discFull:0,priceFull:114284,subcat:'MacBook Air M3'},
+    {model:'15" MacBook Air M3',desc:'M3 8-core CPU 10-core GPU',ram:'16GB',storage:'256GB',mrp:113900,nlc:104219,discFull:0,priceFull:104219,subcat:'MacBook Air M3'},
+    {model:'15" MacBook Air M3',desc:'M3 8-core CPU 10-core GPU',ram:'24GB',storage:'512GB',mrp:154900,nlc:141734,discFull:0,priceFull:141734,subcat:'MacBook Air M3'},
+    {model:'15" MacBook Air M3',desc:'M3 8-core CPU 10-core GPU',ram:'8GB',storage:'512GB',mrp:144900,nlc:132584,discFull:0,priceFull:132584,subcat:'MacBook Air M3'},
+    {model:'15" MacBook Air M3',desc:'M3 8-core CPU 10-core GPU',ram:'16GB',storage:'512GB',mrp:134900,nlc:123434,discFull:0,priceFull:123434,subcat:'MacBook Air M3'},
+    {model:'13" MacBook Air M4',desc:'M4 10-core CPU 8-core GPU',ram:'16GB',storage:'256GB',mrp:99900,nlc:91409,discFull:5000,priceFull:86409,subcat:'MacBook Air M4'},
+    {model:'13" MacBook Air M4',desc:'M4 10-core CPU 10-core GPU',ram:'16GB',storage:'512GB',mrp:119900,nlc:109709,discFull:5000,priceFull:104709,subcat:'MacBook Air M4'},
+    {model:'13" MacBook Air M4',desc:'M4 10-core CPU 10-core GPU',ram:'24GB',storage:'512GB',mrp:139900,nlc:128009,discFull:5000,priceFull:123009,subcat:'MacBook Air M4'},
+    {model:'15" MacBook Air M4',desc:'M4 10-core CPU 10-core GPU',ram:'16GB',storage:'256GB',mrp:124900,nlc:114284,discFull:5000,priceFull:109284,subcat:'MacBook Air M4'},
+    {model:'15" MacBook Air M4',desc:'M4 10-core CPU 10-core GPU',ram:'16GB',storage:'512GB',mrp:144900,nlc:132584,discFull:5000,priceFull:127584,subcat:'MacBook Air M4'},
+    {model:'15" MacBook Air M4',desc:'M4 10-core CPU 10-core GPU',ram:'16GB',storage:'512GB',mrp:164900,nlc:150884,discFull:5000,priceFull:145884,subcat:'MacBook Air M4'},
+    {model:'14" MacBook Pro M3',desc:'M3 8-core CPU 10-core GPU',ram:'—',storage:'512GB',mrp:149900,nlc:137159,discFull:0,priceFull:137159,subcat:'MacBook Pro M3'},
+    {model:'14" MacBook Pro M3',desc:'M3 8-core CPU 10-core GPU',ram:'8GB',storage:'1TB',mrp:169900,nlc:155459,discFull:0,priceFull:155459,subcat:'MacBook Pro M3'},
+    {model:'14" MacBook Pro M3',desc:'M3 8-core CPU 10-core GPU',ram:'16GB',storage:'1TB',mrp:179900,nlc:164609,discFull:0,priceFull:164609,subcat:'MacBook Pro M3'},
+    {model:'14" MacBook Pro M3',desc:'M3 Pro 11-core CPU 14-core GPU',ram:'—',storage:'512GB',mrp:189900,nlc:173759,discFull:0,priceFull:173759,subcat:'MacBook Pro M3'},
+    {model:'14" MacBook Pro M3',desc:'M3 Pro 12-core CPU 18-core GPU',ram:'—',storage:'1TB',mrp:229900,nlc:210359,discFull:0,priceFull:210359,subcat:'MacBook Pro M3'},
+    {model:'14" MacBook Pro M3 Max',desc:'M3 Max 14-core CPU 30-core GPU',ram:'—',storage:'1TB',mrp:309900,nlc:283559,discFull:0,priceFull:283559,subcat:'MacBook Pro M3'},
+    {model:'16" MacBook Pro M3',desc:'M3 Pro 12-core CPU 18-core GPU',ram:'18GB',storage:'512GB',mrp:239900,nlc:219509,discFull:0,priceFull:219509,subcat:'MacBook Pro M3'},
+    {model:'16" MacBook Pro M3',desc:'M3 Pro 12-core CPU 18-core GPU',ram:'36GB',storage:'512GB',mrp:279900,nlc:256109,discFull:0,priceFull:256109,subcat:'MacBook Pro M3'},
+    {model:'16" MacBook Pro M3 Max',desc:'M3 Max 14-core CPU 30-core GPU',ram:'—',storage:'1TB',mrp:339900,nlc:311009,discFull:0,priceFull:311009,subcat:'MacBook Pro M3'},
+    {model:'16" MacBook Pro M3 Max',desc:'M3 Max 16-core CPU 40-core GPU',ram:'—',storage:'1TB',mrp:389900,nlc:356759,discFull:0,priceFull:356759,subcat:'MacBook Pro M3'},
+    {model:'14" MacBook Pro M4',desc:'M4 10-core CPU 10-core GPU',ram:'16GB',storage:'512GB',mrp:169900,nlc:155459,discFull:5000,priceFull:150459,subcat:'MacBook Pro M4'},
+    {model:'14" MacBook Pro M4',desc:'M4 10-core CPU 10-core GPU',ram:'16GB',storage:'1TB',mrp:189900,nlc:173759,discFull:5000,priceFull:168759,subcat:'MacBook Pro M4'},
+    {model:'14" MacBook Pro M4',desc:'M4 10-core CPU 10-core GPU',ram:'24GB',storage:'1TB',mrp:209900,nlc:192059,discFull:5000,priceFull:187059,subcat:'MacBook Pro M4'},
+    {model:'14" MacBook Pro M4',desc:'M4 Pro 12-core CPU 16-core GPU',ram:'24GB',storage:'512GB',mrp:199900,nlc:182909,discFull:5000,priceFull:177909,subcat:'MacBook Pro M4'},
+    {model:'14" MacBook Pro M4',desc:'M4 Pro 14-core CPU 20-core GPU',ram:'24GB',storage:'1TB',mrp:239900,nlc:219509,discFull:5000,priceFull:214509,subcat:'MacBook Pro M4'},
+    {model:'14" MacBook Pro M4',desc:'M4 Max 14-core CPU 32-core GPU',ram:'36GB',storage:'1TB',mrp:319900,nlc:292709,discFull:5000,priceFull:287709,subcat:'MacBook Pro M4'},
+    {model:'16" MacBook Pro M4',desc:'M4 Pro 14-core CPU 20-core GPU',ram:'24GB',storage:'512GB',mrp:249900,nlc:228659,discFull:5000,priceFull:223659,subcat:'MacBook Pro M4'},
+    {model:'16" MacBook Pro M4',desc:'M4 Pro 14-core CPU 20-core GPU',ram:'48GB',storage:'512GB',mrp:289900,nlc:265259,discFull:5000,priceFull:260259,subcat:'MacBook Pro M4'},
+    {model:'16" MacBook Pro M4 Max',desc:'M4 Max 14-core CPU 32-core GPU',ram:'36GB',storage:'1TB',mrp:349900,nlc:320159,discFull:0,priceFull:320159,subcat:'MacBook Pro M4'},
+    {model:'16" MacBook Pro M4 Max',desc:'M4 Max 16-core CPU 40-core GPU',ram:'48GB',storage:'1TB',mrp:399900,nlc:365909,discFull:0,priceFull:365909,subcat:'MacBook Pro M4'},
+    {model:'24" iMac M3',desc:'M3 8-core CPU 8-core GPU, 4.5K Retina',ram:'—',storage:'256GB',mrp:124900,nlc:114284,discFull:5000,priceFull:109284,subcat:'iMac'},
+    {model:'24" iMac M3',desc:'M3 8-core CPU 10-core GPU, 4.5K Retina',ram:'—',storage:'256GB',mrp:144900,nlc:132584,discFull:5000,priceFull:127584,subcat:'iMac'},
+    {model:'24" iMac M3',desc:'M3 8-core CPU 10-core GPU, 4.5K Retina',ram:'—',storage:'512GB',mrp:164900,nlc:150884,discFull:5000,priceFull:145884,subcat:'iMac'},
+    {model:'24" iMac M4',desc:'M4 8-core CPU 8-core GPU, 4.5K Retina',ram:'16GB',storage:'256GB',mrp:134900,nlc:123434,discFull:5000,priceFull:118434,subcat:'iMac'},
+    {model:'24" iMac M4',desc:'M4 10-core CPU 10-core GPU, 4.5K Retina',ram:'16GB',storage:'256GB',mrp:154900,nlc:141734,discFull:5000,priceFull:136734,subcat:'iMac'},
+    {model:'24" iMac M4',desc:'M4 10-core CPU 10-core GPU, Nano-texture',ram:'16GB',storage:'256GB',mrp:174900,nlc:160034,discFull:5000,priceFull:155034,subcat:'iMac'},
+    {model:'24" iMac M4',desc:'M4 10-core CPU 10-core GPU',ram:'16GB',storage:'512GB',mrp:174900,nlc:160034,discFull:5000,priceFull:155034,subcat:'iMac'},
+    {model:'24" iMac M4',desc:'M4 10-core CPU 10-core GPU',ram:'24GB',storage:'512GB',mrp:194900,nlc:178334,discFull:5000,priceFull:173334,subcat:'iMac'},
+    {model:'Mac mini M2',desc:'M2 8-core CPU 10-core GPU',ram:'—',storage:'256GB',mrp:49900,nlc:45659,discFull:4000,priceFull:41659,subcat:'Mac mini'},
+    {model:'Mac mini M2',desc:'M2 8-core CPU 10-core GPU',ram:'—',storage:'512GB',mrp:69900,nlc:63959,discFull:4000,priceFull:59959,subcat:'Mac mini'},
+    {model:'Mac mini M2 Pro',desc:'M2 Pro 10-core CPU 16-core GPU',ram:'—',storage:'512GB',mrp:129900,nlc:118859,discFull:4000,priceFull:114859,subcat:'Mac mini'},
+    {model:'Mac mini M4',desc:'M4 10-core CPU 10-core GPU',ram:'16GB',storage:'256GB',mrp:59900,nlc:54809,discFull:4000,priceFull:50809,subcat:'Mac mini'},
+    {model:'Mac mini M4',desc:'M4 10-core CPU 10-core GPU',ram:'16GB',storage:'512GB',mrp:79900,nlc:73109,discFull:4000,priceFull:69109,subcat:'Mac mini'},
+    {model:'Mac mini M4',desc:'M4 10-core CPU 10-core GPU',ram:'24GB',storage:'512GB',mrp:99900,nlc:91409,discFull:4000,priceFull:87409,subcat:'Mac mini'},
+    {model:'Mac mini M4 Pro',desc:'M4 Pro 12-core CPU 16-core GPU',ram:'24GB',storage:'512GB',mrp:149900,nlc:137159,discFull:4000,priceFull:133159,subcat:'Mac mini'},
+    {model:'Mac Studio M4',desc:'M4 Max 14-core CPU 32-core GPU',ram:'36GB',storage:'512GB',mrp:214900,nlc:196634,discFull:0,priceFull:196634,subcat:'Mac Studio'},
+    {model:'Mac Studio M3 Ultra',desc:'M3 Ultra 28-core CPU 60-core GPU',ram:'96GB',storage:'1TB',mrp:429900,nlc:393359,discFull:0,priceFull:393359,subcat:'Mac Studio'},
+  ],
+};
+
+const categoryMeta = {
+  IPHONE: { label: 'iPhone', icon: '📱', hasEMI: true },
+  IPAD:   { label: 'iPad',   icon: '⬛', hasEMI: true },
+  MACBOOK:{ label: 'Mac',    icon: '💻', hasEMI: false },
+};
+
+function getSubcats(cat) {
+  const items = data[cat];
+  if (!items) return [];
+  const s = new Set();
+  items.forEach(i => i.subcat && s.add(i.subcat));
+  return [...s];
+}
+
+function getIphoneSubcats() {
+  const models = data.IPHONE.map(i => i.model);
+  const cats = ['iPhone 17', 'iPhone Air', '16 Pro', '16 Plus', '16', '15', '14', '13', '16e'];
+  return cats;
+}
+
+function getSubcat(model) {
+  if (model.includes('17 Pro')) return 'iPhone 17 Pro';
+  if (model.includes('iPhone Air')) return 'iPhone Air';
+  if (model.includes('17')) return 'iPhone 17';
+  if (model.includes('16 Pro')) return 'iPhone 16 Pro';
+  if (model.includes('16+') || model.includes('16 Plus')) return 'iPhone 16 Plus';
+  if (model.includes('16e')) return 'iPhone 16e';
+  if (model.includes('16')) return 'iPhone 16';
+  if (model.includes('15+') || model.includes('15 Plus')) return 'iPhone 15 Plus';
+  if (model.includes('15')) return 'iPhone 15';
+  if (model.includes('14')) return 'iPhone 14';
+  if (model.includes('13')) return 'iPhone 13';
+  return 'Other';
+}
+
+function getFilteredItems() {
+  const items = (data[currentCategory] || []).map(i => {
+    if (currentCategory === 'IPHONE') return {...i, subcat: getSubcat(i.model)};
+    return i;
+  });
+  let filtered = items.map((item, idx) => ({...item, _cat: currentCategory, _idx: data[currentCategory].indexOf(item)}));
+  if (currentSubfilter !== 'all') {
+    filtered = filtered.filter(i => i.subcat === currentSubfilter);
+  }
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    filtered = filtered.filter(i => i.model.toLowerCase().includes(q) || (i.desc||'').toLowerCase().includes(q));
+  }
+  // Advanced filters
+  if (filterDisc === 'has_disc') filtered = filtered.filter(i => (i.discFull > 0 || (i.discEMI||0) > 0));
+  if (filterDisc === 'no_disc')  filtered = filtered.filter(i => i.discFull === 0 && (i.discEMI||0) === 0);
+  if (filterModel)   filtered = filtered.filter(i => (i.subcat||'') === filterModel);
+  if (filterStorage) filtered = filtered.filter(i => {
+    const m = (i.model + ' ' + (i.storage||'')).toLowerCase();
+    return m.includes(filterStorage.toLowerCase());
+  });
+  const getPrice = i => currentPayment === 'emi' && i.priceEMI ? i.priceEMI : i.priceFull;
+  if (filterMin !== '') filtered = filtered.filter(i => getPrice(i) >= Number(filterMin));
+  if (filterMax !== '') filtered = filtered.filter(i => getPrice(i) <= Number(filterMax));
+  // Sort
+  if (filterSort === 'price_asc')    filtered.sort((a,b) => getPrice(a) - getPrice(b));
+  if (filterSort === 'price_desc')   filtered.sort((a,b) => getPrice(b) - getPrice(a));
+  if (filterSort === 'mrp_asc')      filtered.sort((a,b) => a.mrp - b.mrp);
+  if (filterSort === 'mrp_desc')     filtered.sort((a,b) => b.mrp - a.mrp);
+  if (filterSort === 'savings_desc') filtered.sort((a,b) => (b.mrp - getPrice(b)) - (a.mrp - getPrice(a)));
+  if (filterSort === 'name_asc')     filtered.sort((a,b) => a.model.localeCompare(b.model));
+  return filtered;
+}
+
+function setPayment(p) {
+  currentPayment = p;
+  document.querySelectorAll('.pay-btn').forEach(b => b.classList.toggle('active', b.dataset.pay === p));
+  renderContent();
+}
+
+function setView(v) {
+  currentView = v;
+  document.getElementById('gridBtn').classList.toggle('active', v === 'grid');
+  document.getElementById('tableBtn').classList.toggle('active', v === 'table');
+  renderContent();
+}
+
+function setCategory(cat) {
+  currentCategory = cat;
+  currentSubfilter = 'all';
+  renderTabs();
+  renderSubfilters();
+  renderContent();
+}
+
+function setSubfilter(sf) {
+  currentSubfilter = sf;
+  renderSubfilters();
+  renderContent();
+}
+
+function renderTabs() {
+  const el = document.getElementById('tabs');
+  el.innerHTML = Object.entries(categoryMeta).map(([k, v]) => {
+    const count = data[k].length;
+    const active = k === currentCategory;
+    return `<button class="tab ${active ? 'active' : ''}" onclick="setCategory('${k}')">
+      ${v.icon} ${v.label} <span class="tab-count">${count}</span>
+    </button>`;
+  }).join('');
+}
+
+function renderSubfilters() {
+  const el = document.getElementById('subfilters');
+  let subcats = [];
+  if (currentCategory === 'IPHONE') {
+    const all = data.IPHONE.map(i => getSubcat(i.model));
+    subcats = [...new Set(all)];
+  } else {
+    subcats = getSubcats(currentCategory);
+  }
+  if (subcats.length < 2) { el.innerHTML = ''; } else {
+    el.innerHTML = `<button class="chip ${currentSubfilter==='all'?'active':''}" onclick="setSubfilter('all')">All</button>` +
+      subcats.map(s => `<button class="chip ${currentSubfilter===s?'active':''}" onclick="setSubfilter('${s}')">${s}</button>`).join('');
+  }
+  // Populate model dropdown in filter bar
+  const sel = document.getElementById('fl_model');
+  if (sel) {
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">All Models</option>' +
+      subcats.map(s => `<option value="${s}">${s}</option>`).join('');
+    sel.value = subcats.includes(prev) ? prev : '';
+  }
+}
+
+function getPriceInfo(item) {
+  const isEMI = currentPayment === 'emi';
+  const hasMacEMI = currentCategory === 'MACBOOK';
+  if (isEMI && !hasMacEMI) {
+    return { disc: item.discEMI || 0, price: item.priceEMI || item.priceFull };
+  }
+  return { disc: item.discFull || 0, price: item.priceFull };
+}
+
+function renderContent() {
+  const items = getFilteredItems();
+  const statsEl = document.getElementById('statsBar');
+  const total = (data[currentCategory]||[]).length;
+  statsEl.innerHTML = `<button class="filter-toggle-btn" id="filterToggleBtn" onclick="toggleFilterBar()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+    Filters
+    <span class="filter-dot" id="filterDot"></span>
+  </button>
+  <span>Showing <strong>${items.length}</strong>${items.length < total ? ' of ' + total : ''} products</span>
+  <span style="color:var(--border)">|</span>
+  <span>Payment: <strong>${currentPayment === 'emi' ? '6-Month EMI' : 'Full Swipe'}</strong></span>`;
+
+  const area = document.getElementById('contentArea');
+  if (!items.length) {
+    area.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><h3>No products found</h3><p>Try a different search or filter</p></div>`;
+    return;
+  }
+
+  if (currentView === 'grid') {
+    area.innerHTML = `<div class="grid">${items.map(item => renderCard(item)).join('')}</div>`;
+  } else {
+    area.innerHTML = renderTable(items);
+  }
+}
+
+function renderCard(item) {
+  const {disc, price} = getPriceInfo(item);
+  const saved = item.mrp - price;
+  const hasDisc = disc > 0;
+
+  let specsHtml = '';
+  if (item.ram || item.storage) {
+    specsHtml = `<div class="card-specs">
+      ${item.ram && item.ram !== '—' ? `<span class="spec-pill ram">RAM: ${item.ram}</span>` : ''}
+      ${item.storage ? `<span class="spec-pill storage">${item.storage}</span>` : ''}
+    </div>`;
+  }
+
+  return `<div class="card">
+    <div class="card-badge ${hasDisc ? '' : 'no-disc'}">${hasDisc ? '💳 DISCOUNT' : 'FIXED PRICE'}</div>
+    <div class="card-model">${item.model}</div>
+    ${item.desc ? `<div class="card-desc">${item.desc}</div>` : ''}
+    ${specsHtml}
+    <div class="divider"></div>
+    <div class="price-row">
+      <span class="price-label">MRP</span>
+      <span class="price-val mrp">${fmt(item.mrp)}</span>
+    </div>
+    <div class="price-row">
+      <span class="price-label">Dealer Price</span>
+      <span class="price-val">${fmt(item.nlc)} <span style="font-size:11px;font-weight:600;color:var(--accent2);background:rgba(48,209,88,0.12);border:1px solid rgba(48,209,88,0.25);border-radius:6px;padding:1px 6px;margin-left:4px;">${(((item.mrp - item.nlc)/item.mrp)*100).toFixed(1)}% off</span></span>
+    </div>
+    ${hasDisc ? `<div class="price-row">
+      <span class="price-label">Card Discount</span>
+      <span class="price-val" style="color:var(--gold)">– ${fmt(disc)}</span>
+    </div>` : ''}
+    <div class="price-row" style="margin-top:8px">
+      <span class="price-label" style="font-size:13px;color:var(--text)">Net Landing</span>
+      <span class="price-val final">${fmt(price)}</span>
+    </div>
+    ${saved > 0 ? `<div class="savings-badge">🏷️ Save ${fmt(saved)} vs MRP</div>` : ''}
+    <div class="card-actions">
+      <button class="btn-edit" onclick="editProduct('${item._cat}',${item._idx})">✏️ Edit</button>
+      <button class="btn-delete" onclick="deleteProduct('${item._cat}',${item._idx})">🗑 Delete</button>
+    </div>
+  </div>`;
+}
+
+function renderTable(items) {
+  const isMac = currentCategory === 'MACBOOK';
+  const isEMI = currentPayment === 'emi' && !isMac;
+  const rows = items.map(item => {
+    const {disc, price} = getPriceInfo(item);
+    const saved = item.mrp - price;
+    return `<tr>
+      <td>${item.model}</td>
+      ${isMac ? `<td>${item.ram||'—'}</td><td>${item.storage||'—'}</td>` : ''}
+      <td class="td-mrp">${fmt(item.mrp)}</td>
+      <td>${fmt(item.nlc)}</td>
+      <td style="color:var(--accent2);font-weight:600;">${(((item.mrp - item.nlc)/item.mrp)*100).toFixed(1)}%</td>
+      ${disc > 0 ? `<td class="td-disc">– ${fmt(disc)}</td>` : `<td style="color:var(--text3)">—</td>`}
+      <td class="td-final">${fmt(price)}</td>
+      <td style="color:var(--gold)">${saved > 0 ? fmt(saved) : '—'}</td>
+      <td class="td-actions">
+        <button class="td-btn-edit" onclick="editProduct('${item._cat}',${item._idx})">✏️ Edit</button>
+        <button class="td-btn-del" onclick="deleteProduct('${item._cat}',${item._idx})">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  return `<div class="table-wrap"><table>
+    <thead><tr>
+      <th>Model</th>
+      ${isMac ? '<th>RAM</th><th>Storage</th>' : ''}
+      <th>MRP</th>
+      <th>Dealer Price</th>
+      <th>Disc. vs MRP</th>
+      <th>Card Disc.</th>
+      <th>Net Landing</th>
+      <th>Savings</th>
+      <th>Actions</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+// Search
+document.getElementById('search').addEventListener('input', e => {
+  searchQuery = e.target.value.trim();
+  renderContent();
+});
+
+// ── MODAL ──────────────────────────────────────────────────────────────
+function openModal() {
+  document.getElementById('modal_title').textContent = 'Add New Product';
+  document.getElementById('btn_submit').textContent = 'Add to Price List';
+  document.getElementById('f_edit_idx').value = '';
+  document.getElementById('f_edit_cat').value = '';
+  document.getElementById('f_category').disabled = false;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('f_category').value = currentCategory;
+  onCategoryChange();
+}
+function editProduct(cat, idx) {
+  const item = data[cat][idx];
+  if (!item) return;
+  resetForm();
+  document.getElementById('modal_title').textContent = 'Edit Product';
+  document.getElementById('btn_submit').textContent = 'Save Changes';
+  document.getElementById('f_edit_cat').value = cat;
+  document.getElementById('f_edit_idx').value = idx;
+  document.getElementById('f_category').value = cat;
+  document.getElementById('f_category').disabled = true;
+  onCategoryChange();
+  document.getElementById('f_model').value   = item.model || '';
+  document.getElementById('f_subcat').value  = item.subcat || '';
+  document.getElementById('f_mrp').value     = item.mrp || '';
+  document.getElementById('f_mrp').closest('.form-row').classList.add('mrp-struck');
+  document.getElementById('f_nlc').value     = item.nlc || '';
+  if (cat === 'MACBOOK') {
+    document.getElementById('f_desc').value    = item.desc || '';
+    document.getElementById('f_ram').value     = (item.ram && item.ram !== '—') ? item.ram : '';
+    document.getElementById('f_storage').value = item.storage || '';
+  }
+  if (item.discFull > 0) {
+    document.getElementById('chk_full').checked = true;
+    document.getElementById('row_full_disc').style.display = '';
+    document.getElementById('lbl_full').classList.add('checked');
+    document.getElementById('f_discFull').value = item.discFull;
+  }
+  if (item.discEMI > 0 && cat !== 'MACBOOK') {
+    document.getElementById('chk_emi').checked = true;
+    document.getElementById('row_emi_disc').style.display = '';
+    document.getElementById('lbl_emi').classList.add('checked');
+    document.getElementById('f_discEMI').value = item.discEMI;
+  }
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function deleteProduct(cat, idx) {
+  const item = data[cat][idx];
+  if (!item) return;
+  if (!confirm('Delete "' + item.model + '"?')) return;
+  data[cat].splice(idx, 1);
+  renderTabs();
+  renderSubfilters();
+  renderContent();
+  showToast('Deleted: ' + item.model);
+  fbAutoSave();
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  resetForm();
+}
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+function resetForm() {
+  ['f_model','f_subcat','f_desc','f_ram','f_storage','f_mrp','f_nlc','f_discFull','f_discEMI'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('chk_full').checked = false;
+  document.getElementById('chk_emi').checked = false;
+  document.getElementById('row_full_disc').style.display = 'none';
+  document.getElementById('row_emi_disc').style.display = 'none';
+  document.getElementById('lbl_full').classList.remove('checked');
+  document.getElementById('lbl_emi').classList.remove('checked');
+  document.getElementById('form_error').style.display = 'none';
+  const mrpRow = document.getElementById('f_mrp');
+  if (mrpRow) mrpRow.closest('.form-row').classList.remove('mrp-struck');
+}
+function onCategoryChange() {
+  const cat = document.getElementById('f_category').value;
+  const isMac = cat === 'MACBOOK';
+  document.getElementById('row_desc').style.display = isMac ? '' : 'none';
+  document.getElementById('row_specs').style.display = isMac ? '' : 'none';
+  document.getElementById('row_emi_toggle').style.display = isMac ? 'none' : '';
+}
+function toggleDisc(type) {
+  const chk = document.getElementById('chk_' + type);
+  const row = document.getElementById('row_' + type + '_disc');
+  const lbl = document.getElementById('lbl_' + type);
+  const isChecked = chk.checked;
+  row.style.display = isChecked ? '' : 'none';
+  lbl.classList.toggle('checked', isChecked);
+}
+function showError(msg) {
+  const el = document.getElementById('form_error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+function submitProduct() {
+  document.getElementById('form_error').style.display = 'none';
+  const cat    = document.getElementById('f_category').value;
+  const model  = document.getElementById('f_model').value.trim();
+  const mrp    = parseInt(document.getElementById('f_mrp').value) || 0;
+  const nlc    = parseInt(document.getElementById('f_nlc').value) || 0;
+
+  if (!model) return showError('Model name is required.');
+  if (!mrp)   return showError('MRP is required.');
+  if (!nlc)   return showError('Dealer / NLC price is required.');
+  if (nlc > mrp) return showError('Dealer price cannot be greater than MRP.');
+
+  const isMac = cat === 'MACBOOK';
+  const hasFull = document.getElementById('chk_full').checked;
+  const hasEMI  = !isMac && document.getElementById('chk_emi').checked;
+  const discFull = hasFull ? (parseInt(document.getElementById('f_discFull').value) || 0) : 0;
+  const discEMI  = hasEMI  ? (parseInt(document.getElementById('f_discEMI').value)  || 0) : 0;
+
+  const newItem = {
+    model,
+    subcat: document.getElementById('f_subcat').value.trim() || 'Custom',
+    mrp,
+    nlc,
+    discFull,
+    priceFull: nlc - discFull,
+    discEMI,
+    priceEMI: nlc - discEMI,
+    isNew: true,
+  };
+  if (isMac) {
+    newItem.desc    = document.getElementById('f_desc').value.trim();
+    newItem.ram     = document.getElementById('f_ram').value.trim() || '—';
+    newItem.storage = document.getElementById('f_storage').value.trim();
+    delete newItem.discEMI;
+    delete newItem.priceEMI;
+  }
+
+  const editIdx = document.getElementById('f_edit_idx').value;
+  const editCat = document.getElementById('f_edit_cat').value;
+  if (editIdx !== '' && editCat) {
+    // Edit mode: preserve isNew flag
+    const old = data[editCat][parseInt(editIdx)];
+    newItem.isNew = old ? old.isNew : false;
+    data[editCat][parseInt(editIdx)] = newItem;
+    closeModal();
+    currentCategory = editCat;
+    renderTabs();
+    renderSubfilters();
+    renderContent();
+    showToast('Updated: ' + model);
+    fbAutoSave();
+  } else {
+    data[cat].unshift(newItem);
+    closeModal();
+    currentCategory = cat;
+    currentSubfilter = 'all';
+    renderTabs();
+    renderSubfilters();
+    renderContent();
+    showToast('Added: ' + model);
+    fbAutoSave();
+  }
+}
+
+const _origRenderCard = renderCard;
+renderCard = function(item) {
+  let html = _origRenderCard(item);
+  if (item.isNew) {
+    html = html.replace('<div class="card">', '<div class="card" style="border-color:#0A84FF77">');
+    html = html.replace('<div class="card-badge', '<div class="new-badge">NEW</div><div class="card-badge');
+  }
+  return html;
+};
+
+
+// ── FILTERS ────────────────────────────────────────────────────────────
+function toggleFilterBar() {
+  const bar = document.getElementById('filterBar');
+  const btn = document.getElementById('filterToggleBtn');
+  const open = bar.classList.toggle('open');
+  btn.classList.toggle('active', open);
+}
+function applyFilters() {
+  filterSort    = document.getElementById('fl_sort').value;
+  filterDisc    = document.getElementById('fl_disc').value;
+  filterStorage = document.getElementById('fl_storage').value;
+  filterMin     = document.getElementById('fl_min').value;
+  filterMax     = document.getElementById('fl_max').value;
+  filterModel   = document.getElementById('fl_model').value;
+  renderActiveFilterTags();
+  renderContent();
+}
+function resetFilters() {
+  ['fl_sort','fl_disc','fl_storage','fl_model'].forEach(id => document.getElementById(id).value = '');
+  ['fl_min','fl_max'].forEach(id => document.getElementById(id).value = '');
+  filterSort = filterDisc = filterStorage = filterMin = filterMax = filterModel = '';
+  renderActiveFilterTags();
+  renderContent();
+}
+function renderActiveFilterTags() {
+  const tags = [];
+  const labels = {
+    fl_sort: { price_asc:'Price ↑', price_desc:'Price ↓', savings_desc:'Most Savings', mrp_asc:'MRP ↑', mrp_desc:'MRP ↓', name_asc:'A–Z' },
+    fl_disc: { has_disc:'Has Discount', no_disc:'No Discount' },
+    fl_storage: { '128GB':'128GB','256GB':'256GB','512GB':'512GB','1TB':'1TB','2TB':'2TB' },
+  };
+  if (filterModel)   tags.push({id:'fl_model',   label:'Model: '   + filterModel});
+  if (filterSort)    tags.push({id:'fl_sort',    label:'Sort: '    + labels.fl_sort[filterSort]});
+  if (filterDisc)    tags.push({id:'fl_disc',    label:'Discount: '+ labels.fl_disc[filterDisc]});
+  if (filterStorage) tags.push({id:'fl_storage', label:'Storage: ' + filterStorage});
+  if (filterMin)     tags.push({id:'fl_min',     label:'Min: ₹'    + Number(filterMin).toLocaleString('en-IN')});
+  if (filterMax)     tags.push({id:'fl_max',     label:'Max: ₹'    + Number(filterMax).toLocaleString('en-IN')});
+  const row = document.getElementById('activeFiltersRow');
+  row.innerHTML = tags.map(t =>
+    `<span class="active-filter-tag">${t.label}
+      <button onclick="clearFilter('${t.id}')">✕</button>
+    </span>`
+  ).join('');
+  document.getElementById('filterDot').classList.toggle('visible', tags.length > 0);
+  document.getElementById('filterToggleBtn').classList.toggle('active',
+    document.getElementById('filterBar').classList.contains('open') || tags.length > 0);
+}
+function clearFilter(id) {
+  document.getElementById(id).value = '';
+  if (id==='fl_model')   filterModel   = '';
+  if (id==='fl_sort')    filterSort    = '';
+  if (id==='fl_disc')    filterDisc    = '';
+  if (id==='fl_storage') filterStorage = '';
+  if (id==='fl_min')     filterMin     = '';
+  if (id==='fl_max')     filterMax     = '';
+  renderActiveFilterTags();
+  renderContent();
+}
+
+// ── BACKUP & RESTORE ───────────────────────────────────────────────────
+function downloadBackup() {
+  const backup = {
+    version: 1,
+    timestamp: new Date().toISOString(),
+    data: data
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'apple-pricelist-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✓ Backup downloaded!');
+}
+function restoreBackup() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const backup = JSON.parse(ev.target.result);
+        if (!backup.data || !backup.data.IPHONE) throw new Error('Invalid backup file.');
+        if (!confirm('Restore backup from ' + (backup.timestamp ? new Date(backup.timestamp).toLocaleString() : 'unknown date') + '? This will replace all current data.')) return;
+        Object.assign(data, backup.data);
+        currentSubfilter = 'all';
+        renderTabs();
+        renderSubfilters();
+        renderContent();
+        showToast('✓ Backup restored!');
+      } catch(err) {
+        alert('Could not restore: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+function exportExcel() {
+  const wb = XLSX.utils.book_new();
+
+  // iPhone sheet
+  const iphoneRows = [['Model','MRP (₹)','Dealer/NLC Price','Disc % vs MRP','Card Disc Full Swipe','Net Landing (Full Swipe)','Card Disc 6M EMI','Net Landing (6M EMI)','Savings vs MRP']];
+  data.IPHONE.forEach(i => {
+    const discPct = (((i.mrp - i.nlc)/i.mrp)*100).toFixed(1) + '%';
+    const savingsFull = i.mrp - i.priceFull;
+    iphoneRows.push([i.model, i.mrp, i.nlc, discPct, i.discFull||0, i.priceFull, i.discEMI||0, i.priceEMI||i.priceFull, savingsFull]);
+  });
+  const wsPhone = XLSX.utils.aoa_to_sheet(iphoneRows);
+  styleSheet(wsPhone, iphoneRows.length);
+  XLSX.utils.book_append_sheet(wb, wsPhone, 'iPhone');
+
+  // iPad sheet
+  const ipadRows = [['Model','MRP (₹)','Dealer/NLC Price','Disc % vs MRP','Card Disc Full Swipe','Net Landing (Full Swipe)','Card Disc 6M EMI','Net Landing (6M EMI)','Savings vs MRP']];
+  data.IPAD.forEach(i => {
+    const discPct = (((i.mrp - i.nlc)/i.mrp)*100).toFixed(1) + '%';
+    const savingsFull = i.mrp - i.priceFull;
+    ipadRows.push([i.model, i.mrp, i.nlc, discPct, i.discFull||0, i.priceFull, i.discEMI||0, i.priceEMI||i.priceFull, savingsFull]);
+  });
+  const wsIpad = XLSX.utils.aoa_to_sheet(ipadRows);
+  styleSheet(wsIpad, ipadRows.length);
+  XLSX.utils.book_append_sheet(wb, wsIpad, 'iPad');
+
+  // Mac sheet
+  const macRows = [['Model','Description','RAM','Storage','MRP (₹)','Dealer/NLC Price','Disc % vs MRP','Card Disc Full Swipe','Net Landing (Full Swipe)','Savings vs MRP']];
+  data.MACBOOK.forEach(i => {
+    const discPct = (((i.mrp - i.nlc)/i.mrp)*100).toFixed(1) + '%';
+    const savingsFull = i.mrp - i.priceFull;
+    macRows.push([i.model, i.desc||'', i.ram||'', i.storage||'', i.mrp, i.nlc, discPct, i.discFull||0, i.priceFull, savingsFull]);
+  });
+  const wsMac = XLSX.utils.aoa_to_sheet(macRows);
+  styleSheet(wsMac, macRows.length);
+  XLSX.utils.book_append_sheet(wb, wsMac, 'Mac');
+
+  XLSX.writeFile(wb, 'Apple-Price-List-' + new Date().toISOString().slice(0,10) + '.xlsx');
+  showToast('✓ Excel exported!');
+}
+
+function styleSheet(ws, rowCount) {
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  const colCount = range.e.c + 1;
+  // Column widths
+  ws['!cols'] = Array.from({length: colCount}, (_, i) => ({ wch: i === 0 ? 48 : i === 1 ? 22 : 18 }));
+  // Header row style
+  for (let c2 = 0; c2 < colCount; c2++) {
+    const cell = ws[XLSX.utils.encode_cell({r:0, c:c2})];
+    if (cell) {
+      cell.s = {
+        font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11 },
+        fill: { fgColor: { rgb: '1D1D1F' }, patternType: 'solid' },
+        alignment: { horizontal: 'center', wrapText: true },
+        border: { bottom: { style: 'thin', color: { rgb: '444444' } } }
+      };
+    }
+  }
+}
+
+// Init
+renderTabs();
+renderSubfilters();
+renderContent();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+// ── FIREBASE ────────────────────────────────────────────────────────────
+let _fbApp = null;
+let _fbDb  = null;
+let _fbUnsub = null;
+let _fbAutoSaveTimer = null;
+let _fbIgnoreNextSnapshot = false;
+
+function fbAutoSave() {
+  clearTimeout(_fbAutoSaveTimer);
+  _fbAutoSaveTimer = setTimeout(async () => {
+    if (!_fbDb || !fbIsConfigured()) return;
+    try {
+      _fbIgnoreNextSnapshot = true;
+      fbUpdateDot('saving');
+      const clean = JSON.parse(JSON.stringify(data));
+      await _fbDb.collection('pricelist').doc('main').set(clean);
+      fbUpdateDot('saved');
+      setTimeout(() => fbUpdateDot('connected'), 2000);
+    } catch(e) {
+      fbUpdateDot('error');
+      console.error('Auto-save failed:', e.message);
+    }
+  }, 800);
+}
+
+function fbGetConfig() {
+  // Priority: 1) URL hash  2) localStorage
+  try {
+    const hash = window.location.hash.slice(1);
+    if (hash && hash.startsWith('fb=')) {
+      const cfg = JSON.parse(atob(hash.slice(3)));
+      if (cfg && cfg.apiKey) {
+        // Save to localStorage so next open (without hash) also works
+        localStorage.setItem('fbConfig', JSON.stringify(cfg));
+        // Clean hash from URL silently
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+        return cfg;
+      }
+    }
+  } catch(e) {}
+  return JSON.parse(localStorage.getItem('fbConfig') || 'null');
+}
+function fbIsConfigured() {
+  const cfg = fbGetConfig();
+  return cfg && cfg.apiKey && cfg.projectId;
+}
+function fbShareLink() {
+  const cfg = fbGetConfig();
+  if (!cfg) return null;
+  const encoded = btoa(JSON.stringify(cfg));
+  return window.location.href.split('#')[0] + '#fb=' + encoded;
+}
+function fbUpdateDot(state) {
+  const dot = document.getElementById('fbDot');
+  const btn = document.getElementById('fbStatusBtn');
+  if (!dot) return;
+  const colors = { connected:'#30D158', saving:'#FFD60A', saved:'#30D158', error:'#FF453A', off:'#6e6e73' };
+  const tips   = { connected:'Connected – click to save', saving:'Saving...', saved:'Saved ✓', error:'Error – check config', off:'Not configured – click gear to setup' };
+  dot.style.background = colors[state] || colors.off;
+  if (btn) btn.title = tips[state] || '';
+}
+
+function fbInit() {
+  const cfg = fbGetConfig();
+  if (!cfg || !cfg.apiKey) { fbUpdateDot('off'); return; }
+  try {
+    // Delete previous app if exists
+    if (_fbApp) { _fbApp.delete(); _fbApp = null; _fbDb = null; }
+    if (_fbUnsub) { _fbUnsub(); _fbUnsub = null; }
+    _fbApp = firebase.initializeApp(cfg, 'pricelist-' + Date.now());
+    _fbDb  = firebase.firestore(_fbApp);
+    fbUpdateDot('connected');
+    // Load latest data immediately on connect
+    _fbDb.collection('pricelist').doc('main').get().then(snap => {
+      if (snap.exists) {
+        const d = snap.data();
+        if (d && d.IPHONE && d.IPHONE.length) {
+          Object.assign(data, d);
+          renderTabs(); renderSubfilters(); renderContent();
+          fbUpdateDot('connected');
+        }
+      }
+    }).catch(e => console.error('Initial load failed:', e));
+    // Live listener
+    _fbUnsub = _fbDb.collection('pricelist').doc('main').onSnapshot(snap => {
+      if (_fbIgnoreNextSnapshot) {
+        _fbIgnoreNextSnapshot = false;
+        return; // skip echo of our own save
+      }
+      if (snap.exists) {
+        const d = snap.data();
+        if (d && d.IPHONE && d.IPHONE.length) {
+          Object.assign(data, d);
+          renderTabs(); renderSubfilters(); renderContent();
+          fbUpdateDot('connected');
+          showToast('📲 Synced from another device');
+        }
+      }
+    }, err => { fbUpdateDot('error'); console.error('Snapshot error:', err); });
+  } catch(e) {
+    fbUpdateDot('error');
+    console.error('Firebase init error:', e);
+  }
+}
+
+async function fbSaveNow() {
+  if (!fbIsConfigured()) { openFbConfig(); return; }
+  if (!_fbDb) { fbInit(); setTimeout(fbSaveNow, 1500); return; }
+  fbUpdateDot('saving');
+  try {
+    _fbIgnoreNextSnapshot = true;
+    const clean = JSON.parse(JSON.stringify(data));
+    await _fbDb.collection('pricelist').doc('main').set(clean);
+    fbUpdateDot('saved');
+    showToast('☁️ Saved to Firebase!');
+    setTimeout(() => fbUpdateDot('connected'), 3000);
+  } catch(e) {
+    fbUpdateDot('error');
+    _fbIgnoreNextSnapshot = false;
+    alert('Save failed: ' + e.message + '\n\nMake sure Firestore is enabled in your Firebase console.');
+  }
+}
+
+function openFbConfig() {
+  document.getElementById('fbConfigModal').classList.add('open');
+  const cfg = fbGetConfig() || {};
+  ['apiKey','authDomain','projectId','storageBucket','messagingSenderId','appId'].forEach(k => {
+    const el = document.getElementById('fb_' + k);
+    if (el) el.value = cfg[k] || '';
+  });
+  // Show share section if already configured
+  const shareRow = document.getElementById('fbShareRow');
+  if (shareRow) {
+    if (cfg.apiKey) {
+      shareRow.style.display = '';
+      document.getElementById('fbShareLinkInline').value = fbShareLink() || '';
+    } else {
+      shareRow.style.display = 'none';
+    }
+  }
+}
+
+function saveFbConfig() {
+  const cfg = {};
+  ['apiKey','authDomain','projectId','storageBucket','messagingSenderId','appId'].forEach(k => {
+    cfg[k] = (document.getElementById('fb_' + k).value || '').trim();
+  });
+  if (!cfg.apiKey) { alert('API Key is required.'); return; }
+  if (!cfg.projectId) { alert('Project ID is required.'); return; }
+  localStorage.setItem('fbConfig', JSON.stringify(cfg));
+  document.getElementById('fbConfigModal').classList.remove('open');
+  fbInit();
+  showToast('✓ Firebase connected!');
+  // Show share modal after short delay so user can share to other devices
+  setTimeout(fbShowShare, 800);
+}
+
+function fbShowShare() {
+  const link = fbShareLink();
+  if (!link) return;
+  document.getElementById('fbShareLink').value = link;
+  // Generate QR via free API
+  const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(link);
+  document.getElementById('fbQrImg').src = qrUrl;
+  document.getElementById('fbShareModal').classList.add('open');
+}
+function fbCopyLink() {
+  const link = document.getElementById('fbShareLink').value;
+  navigator.clipboard.writeText(link).then(() => showToast('✓ Link copied!')).catch(() => {
+    document.getElementById('fbShareLink').select();
+    document.execCommand('copy');
+    showToast('✓ Link copied!');
+  });
+}
+
+// Auto-init on page load
+window.addEventListener('load', () => {
+  if (fbIsConfigured()) fbInit();
+  else fbUpdateDot('off');
+});
+</script>
+
+<!-- Firebase Config Modal -->
+<div class="modal-overlay" id="fbConfigModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">☁️ Firebase Setup</div>
+      <button class="modal-close" onclick="document.getElementById('fbConfigModal').classList.remove('open')">&#x2715;</button>
+    </div>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:6px;line-height:1.7">
+      1. Go to <a href="https://console.firebase.google.com" target="_blank" style="color:var(--accent)">console.firebase.google.com</a><br>
+      2. Create a project → <strong>Build → Firestore Database → Create database</strong> (Test mode)<br>
+      3. <strong>Project Settings → Your Apps → &lt;/&gt; Web → Register app</strong> → copy config below
+    </p>
+    <div style="height:1px;background:var(--border);margin:14px 0"></div>
+    <div class="form-row"><label>API Key *</label><input type="text" id="fb_apiKey" placeholder="AIzaSy..." autocomplete="off" /></div>
+    <div class="form-row"><label>Auth Domain</label><input type="text" id="fb_authDomain" placeholder="your-app.firebaseapp.com" /></div>
+    <div class="form-row"><label>Project ID *</label><input type="text" id="fb_projectId" placeholder="your-project-id" /></div>
+    <div class="form-row"><label>Storage Bucket</label><input type="text" id="fb_storageBucket" placeholder="your-app.firebasestorage.app" /></div>
+    <div class="form-row"><label>Messaging Sender ID</label><input type="text" id="fb_messagingSenderId" placeholder="123456789" /></div>
+    <div class="form-row"><label>App ID</label><input type="text" id="fb_appId" placeholder="1:123:web:abc..." /></div>
+    <button class="btn-submit" onclick="saveFbConfig()">✓ Connect Firebase</button>
+    <!-- Share row — shown only when already configured -->
+    <div id="fbShareRow" style="display:none;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+      <div style="font-size:12px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px">📲 Share to Other Devices</div>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:10px">Copy this link and open it on any other device — it will auto-connect to the same database.</p>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="fbShareLinkInline" readonly style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:8px 12px;color:var(--text2);font-size:11px;font-family:monospace;outline:none" />
+        <button onclick="navigator.clipboard.writeText(document.getElementById('fbShareLinkInline').value).then(()=>showToast('✓ Copied!'))" style="background:var(--accent);color:#fff;border:none;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;white-space:nowrap">Copy</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase Share Modal -->
+<div class="modal-overlay" id="fbShareModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal" style="max-width:420px;text-align:center">
+    <div class="modal-header">
+      <div class="modal-title">📲 Share to Other Devices</div>
+      <button class="modal-close" onclick="document.getElementById('fbShareModal').classList.remove('open')">&#x2715;</button>
+    </div>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:18px;line-height:1.6">
+      Scan this QR code on any other device — it will <strong style="color:var(--text)">auto-connect</strong> to the same Firebase database instantly. No typing needed.
+    </p>
+    <img id="fbQrImg" src="" alt="QR Code" style="width:200px;height:200px;border-radius:12px;border:2px solid var(--border);margin-bottom:16px" />
+    <p style="font-size:11px;color:var(--text3);margin-bottom:8px">Or copy the link manually:</p>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <input type="text" id="fbShareLink" readonly style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:8px 12px;color:var(--text2);font-size:11px;font-family:monospace;outline:none" />
+      <button onclick="fbCopyLink()" style="background:var(--accent);color:#fff;border:none;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer">Copy</button>
+    </div>
+    <p style="font-size:11px;color:var(--text3);line-height:1.6">⚠️ This link contains your Firebase credentials. Only share with trusted devices.</p>
+    <button onclick="document.getElementById('fbShareModal').classList.remove('open')" style="margin-top:14px;width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text2);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer">Done</button>
+  </div>
+</div>
+
+</body>
+</html>
