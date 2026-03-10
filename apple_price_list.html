@@ -1247,6 +1247,7 @@ let filterMin = '';
 let filterMax = '';
 let filterModel = '';
 let filterStock = '';
+let filterStockOnly = false;
 
 // ── DATA ──────────────────────────────────────────────────────────────
 const data = {
@@ -1529,9 +1530,10 @@ function renderTabs() {
   if (stockBar) {
     stockBar.innerHTML = Object.entries(categoryMeta).map(([k, v]) => {
       const qty = getTotalStock(k);
-      return `<div class="stock-summary-item">
+      const active = currentCategory === k && filterStockOnly;
+      return `<div class="stock-summary-item ${active ? 'stock-active' : ''}" onclick="filterByStock('${k}')" style="cursor:pointer" title="Show ${v.label} in stock">
         <span class="stock-summary-label">${v.icon} ${v.label}</span>
-        <span class="stock-summary-qty">${qty} units</span>
+        <span class="stock-summary-qty ${qty > 0 ? 'stock-has' : ''}">${qty} units</span>
       </div>`;
     }).join('');
   }
