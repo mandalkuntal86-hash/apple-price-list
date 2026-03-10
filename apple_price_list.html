@@ -653,6 +653,8 @@
   .hdr-btn-green { color: var(--accent2); border-color: rgba(48,209,88,0.3); background: rgba(48,209,88,0.07); }
   .hdr-btn-green:hover { background: rgba(48,209,88,0.15); border-color: rgba(48,209,88,0.5); }
 
+  .hdr-btn-upload { color:#5e5ce6; border-color:rgba(94,92,230,0.3); background:rgba(94,92,230,0.07); }
+  .hdr-btn-upload:hover { background:rgba(94,92,230,0.15); }
   .hdr-btn-fb { color:#FFA500; border-color:rgba(255,165,0,0.3); background:rgba(255,165,0,0.07); gap:6px; }
   .hdr-btn-fb:hover { background:rgba(255,165,0,0.15); }
   .hdr-btn-fb-cfg { padding:7px 9px; color:var(--text3); }
@@ -1045,6 +1047,10 @@
         <input type="text" class="search-input" id="search" placeholder="Search models..." />
       </div>
       <div class="header-actions">
+        <button class="hdr-btn hdr-btn-upload" onclick="openBulkUpload()" title="Bulk Upload Excel">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span class="btn-label">Import</span>
+        </button>
         <button class="hdr-btn" onclick="restoreBackup()" title="Restore">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
           <span class="btn-label">Restore</span>
@@ -2133,6 +2139,126 @@ function getColorSwatch(name) {
   return '#888';
 }
 
+// ── BULK UPLOAD ───────────────────────────────────────────────────────
+let _bulkParsed = null;
+
+function openBulkUpload() {
+  document.getElementById('bulkUploadModal').classList.add('open');
+  document.getElementById('bulkPreview').style.display = 'none';
+  document.getElementById('bulkFileInput').value = '';
+}
+
+function downloadBulkTemplate() {
+  if (typeof XLSX === 'undefined') { showToast('Excel library not loaded'); return; }
+  const rows = [
+    ['Category','Model','Description','MRP','NLC','DiscFull','DiscEMI','Subcat','Stock','Colors','RAM','Storage'],
+    ['IPHONE','iPhone 16 128GB','',79900,74000,2000,1500,'iPhone 16',2,'Black:1, White:1','',''],
+    ['IPAD','iPad Air 11" 128GB','Wi-Fi, Liquid Retina display',59900,56000,1500,0,'iPad Air M3',1,'Space Gray:1','','128GB'],
+    ['MACBOOK','MacBook Air 13"','Apple M3 chip, 8-core CPU',114900,108000,2000,0,'MacBook Air M3',0,'','8GB','256GB'],
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:10},{wch:30},{wch:25},{wch:8},{wch:8},{wch:9},{wch:8},{wch:16},{wch:7},{wch:20},{wch:6},{wch:8}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Products');
+  XLSX.writeFile(wb, 'bulk_import_template.xlsx');
+}
+
+function handleBulkFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+      _bulkParsed = [];
+      const errors = [];
+      rows.forEach((row, i) => {
+        const cat = (row['Category']||'').toString().toUpperCase().trim();
+        const model = (row['Model']||'').toString().trim();
+        if (!cat || !model) return;
+        if (!['IPHONE','IPAD','MACBOOK'].includes(cat)) {
+          errors.push(`Row ${i+2}: Invalid category "${cat}"`);
+          return;
+        }
+        const mrp  = parseInt(row['MRP'])  || 0;
+        const nlc  = parseInt(row['NLC'])  || 0;
+        const discFull = parseInt(row['DiscFull']) || 0;
+        const discEMI  = parseInt(row['DiscEMI'])  || 0;
+        const stock = row['Stock'] !== '' ? (parseInt(row['Stock']) || null) : null;
+        // Parse colors
+        let colors = null;
+        const colRaw = (row['Colors']||'').toString().trim();
+        if (colRaw) {
+          colors = {};
+          colRaw.split(',').forEach(pair => {
+            const [col, qty] = pair.split(':').map(s=>s.trim());
+            if (col) colors[col] = parseInt(qty)||0;
+          });
+          if (!Object.keys(colors).length) colors = null;
+        }
+        const desc = (row['Description']||'').toString().trim();
+        const item = {
+          model, stock, colors, mrp, nlc,
+          subcat: (row['Subcat']||'').toString().trim() || 'Custom',
+          discFull, priceFull: nlc - discFull,
+          discEMI,  priceEMI:  nlc - discEMI,
+          isNew: true,
+        };
+        if (desc) item.desc = desc;
+        if (cat === 'MACBOOK') {
+          item.desc    = desc;
+          item.ram     = (row['RAM']||'').toString().trim() || '—';
+          item.storage = (row['Storage']||'').toString().trim();
+          delete item.discEMI; delete item.priceEMI;
+        }
+        _bulkParsed.push({cat, item});
+      });
+      // Show preview
+      const counts = {IPHONE:0, IPAD:0, MACBOOK:0};
+      _bulkParsed.forEach(r => counts[r.cat]++);
+      document.getElementById('bulkPreviewInfo').innerHTML =
+        `<strong style="color:var(--text)">✅ Found ${_bulkParsed.length} products</strong> — ` +
+        `📱 iPhone: ${counts.IPHONE} &nbsp; iPad: ${counts.IPAD} &nbsp; 💻 Mac: ${counts.MACBOOK}` +
+        (errors.length ? `<br><span style="color:#FF453A">⚠️ ${errors.length} rows skipped: ${errors.slice(0,2).join(', ')}</span>` : '');
+      // Preview table
+      const tableHtml = `<table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="background:var(--surface2)">${['Category','Model','Description','MRP','Stock'].map(h=>`<th style="padding:6px 10px;text-align:left;color:var(--text3);font-weight:500">${h}</th>`).join('')}</tr></thead>
+        <tbody>${_bulkParsed.slice(0,20).map(({cat,item},i)=>`
+          <tr style="border-top:1px solid var(--border);background:${i%2?'var(--surface2)':'transparent'}">
+            <td style="padding:5px 10px;color:var(--accent)">${cat}</td>
+            <td style="padding:5px 10px;color:var(--text)">${item.model}</td>
+            <td style="padding:5px 10px;color:var(--text3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.desc||'—'}</td>
+            <td style="padding:5px 10px;color:var(--text2)">₹${item.mrp.toLocaleString('en-IN')}</td>
+            <td style="padding:5px 10px;color:${item.stock>0?'#30D158':'var(--text3)'}">${item.stock||'—'}</td>
+          </tr>`).join('')}
+        ${_bulkParsed.length>20?`<tr><td colspan="5" style="padding:8px 10px;color:var(--text3);text-align:center">...and ${_bulkParsed.length-20} more</td></tr>`:''}
+        </tbody></table>`;
+      document.getElementById('bulkPreviewTable').innerHTML = tableHtml;
+      document.getElementById('bulkPreview').style.display = 'block';
+    } catch(e) {
+      showToast('❌ Error reading file: ' + e.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function confirmBulkImport(replace) {
+  if (!_bulkParsed || !_bulkParsed.length) return;
+  if (replace) {
+    if (!confirm('This will DELETE all existing products and replace with imported data. Continue?')) return;
+    data.IPHONE = []; data.IPAD = []; data.MACBOOK = [];
+  }
+  _bulkParsed.forEach(({cat, item}) => data[cat].push(item));
+  saveToLocal();
+  fbSave();
+  document.getElementById('bulkUploadModal').classList.remove('open');
+  renderTabs(); renderSubfilters(); renderContent();
+  showToast(`✅ Imported ${_bulkParsed.length} products!`);
+  _bulkParsed = null;
+}
+
 // ── LOCAL STORAGE PERSISTENCE ─────────────────────────────────────────
 const LS_KEY = 'applePriceListData';
 
@@ -2377,6 +2503,45 @@ window.addEventListener('load', () => {
     <div class="form-row"><label>App ID</label><input type="text" id="fb_appId" placeholder="1:123:web:abc..."/></div>
     <button class="btn-submit" onclick="saveFbSettings()">✅ Save & Connect</button>
     <button onclick="resetFbSettings()" style="width:100%;margin-top:10px;padding:10px;background:none;border:1px solid var(--border);border-radius:10px;color:var(--text3);font-family:var(--font);font-size:13px;cursor:pointer;">↩️ Reset to Default</button>
+  </div>
+</div>
+
+<!-- Bulk Upload Modal -->
+<div class="modal-overlay" id="bulkUploadModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-title">📥 Bulk Import from Excel</div>
+      <button class="modal-close" onclick="document.getElementById('bulkUploadModal').classList.remove('open')">&#x2715;</button>
+    </div>
+
+    <!-- Template download -->
+    <div style="background:var(--surface2);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px;line-height:1.7;color:var(--text2)">
+      <strong style="color:var(--text)">📋 Required Excel columns:</strong><br>
+      <span style="font-family:monospace;font-size:12px;color:var(--accent)">Category | Model | Description | MRP | NLC | DiscFull | DiscEMI | Subcat | Stock | Colors | RAM | Storage</span><br>
+      <span style="font-size:11px;color:var(--text3)">Category must be: IPHONE, IPAD, or MACBOOK &nbsp;|&nbsp; Colors format: Midnight:2, Blue:1</span>
+    </div>
+    <button onclick="downloadBulkTemplate()" style="width:100%;padding:10px;margin-bottom:16px;background:none;border:1px dashed var(--border);border-radius:10px;color:var(--accent);font-family:var(--font);font-size:13px;cursor:pointer;">
+      ⬇️ Download Template Excel
+    </button>
+
+    <!-- File picker -->
+    <div id="bulkDropZone" onclick="document.getElementById('bulkFileInput').click()"
+      style="border:2px dashed var(--border);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:16px;">
+      <div style="font-size:32px;margin-bottom:8px">📂</div>
+      <div style="font-size:14px;color:var(--text2)">Click to select Excel file</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px">.xlsx or .xls files</div>
+    </div>
+    <input type="file" id="bulkFileInput" accept=".xlsx,.xls" style="display:none" onchange="handleBulkFile(this)"/>
+
+    <!-- Preview -->
+    <div id="bulkPreview" style="display:none">
+      <div id="bulkPreviewInfo" style="font-size:13px;color:var(--text2);margin-bottom:10px"></div>
+      <div id="bulkPreviewTable" style="max-height:220px;overflow-y:auto;border-radius:8px;border:1px solid var(--border)"></div>
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <button onclick="confirmBulkImport(false)" class="btn-submit" style="flex:1">➕ Add to existing</button>
+        <button onclick="confirmBulkImport(true)" class="btn-submit" style="flex:1;background:var(--del)">🔄 Replace all data</button>
+      </div>
+    </div>
   </div>
 </div>
 
