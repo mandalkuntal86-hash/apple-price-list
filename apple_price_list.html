@@ -1004,8 +1004,8 @@
   }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.min.js"></script>
 </head>
 <body>
 
@@ -2151,8 +2151,31 @@ async function fbSaveNow() {
   showToast('☁️ Synced!');
 }
 
-function fbInit() {
-  if (typeof firebase==='undefined') { fbDot('error'); return; }
+async function fbLoadSDK() {
+  if (typeof firebase !== 'undefined') return true;
+  const cdns = [
+    ['https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.min.js',
+     'https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.min.js'],
+    ['https://unpkg.com/firebase@9.23.0/firebase-app-compat.js',
+     'https://unpkg.com/firebase@9.23.0/firebase-firestore-compat.js'],
+    ['https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',
+     'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js'],
+  ];
+  for (const [a, b] of cdns) {
+    try {
+      await new Promise((res,rej)=>{const s=document.createElement('script');s.src=a;s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+      await new Promise((res,rej)=>{const s=document.createElement('script');s.src=b;s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+      if (typeof firebase !== 'undefined') return true;
+    } catch(e) { console.warn('CDN failed:', a); }
+  }
+  return false;
+}
+
+async function fbInit() {
+  if (typeof firebase === 'undefined') {
+    const ok = await fbLoadSDK();
+    if (!ok) { fbDot('error'); showToast('❌ Firebase SDK failed to load'); return; }
+  }
   try {
     if (_fbApp) { try{_fbApp.delete();}catch(e){} }
     if (_fbUnsub) { _fbUnsub(); _fbUnsub=null; }
@@ -2263,8 +2286,7 @@ window.addEventListener('offline',()=>{ fbDot('error'); showToast('📵 Offline'
 window.addEventListener('load', () => {
   loadFromLocal();  // Show local data instantly
   initRender();
-  fbInit();         // Then sync with Firebase in background
-  fbStartHb();
+  fbInit().then(()=>fbStartHb()).catch(e=>console.error(e)); // Firebase in background
 });
 
 </script>
