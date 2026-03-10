@@ -658,6 +658,12 @@
   .hdr-btn-fb-cfg { padding:7px 9px; color:var(--text3); }
   .hdr-btn-fb-cfg:hover { color:var(--text); background:var(--surface2); }
 
+
+  /* ── Color Stock Dots ── */
+  .color-stock-bar { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+  .color-dot { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; background: var(--surface2); border: 1px solid var(--border); color: var(--text2); }
+  .color-dot-swatch { width: 9px; height: 9px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); flex-shrink: 0; }
+
   /* ── MOBILE RESPONSIVE ─────────────────────────────────────── */
   @media (max-width: 768px) {
     .hdr-btn span.btn-label { display: none; }
@@ -1164,6 +1170,10 @@
       <label>Stock Quantity</label>
       <input type="number" id="f_stock" placeholder="e.g. 5" min="0" />
     </div>
+    <div class="form-row">
+      <label>Color-wise Stock <span style="font-size:11px;color:var(--text3)">(format: Red:2, Blue:1, Black:3)</span></label>
+      <input type="text" id="f_colors" placeholder="e.g. Midnight:2, Starlight:1, Blue:3" />
+    </div>
     <div class="form-grid-2">
       <div class="form-row">
         <label>Quantity</label>
@@ -1655,6 +1665,7 @@ function renderCard(item) {
     <div class="card-badge ${hasDisc ? '' : 'no-disc'}">${hasDisc ? '💳 DISCOUNT' : 'FIXED PRICE'}</div>
     <div class="card-model">${item.model} ${(item.stock > 0) ? `<span class="stock-qty">📦 ${item.stock}</span>` : ''}</div>
     ${item.desc ? `<div class="card-desc">${item.desc}</div>` : ''}
+    ${item.colors && Object.keys(item.colors).length > 0 ? `<div class="color-stock-bar">${Object.entries(item.colors).map(([col,qty]) => `<span class="color-dot">${col}: ${qty}</span>`).join('')}</div>` : ''}
     ${specsHtml}
     <div class="divider"></div>
     <div class="price-row">
@@ -1855,10 +1866,23 @@ function submitProduct() {
 
   const stockVal = document.getElementById('f_stock').value.trim();
   const stock = stockVal !== '' ? (parseInt(stockVal) || 0) : null;
+
+  // Parse color:qty pairs
+  const colorsRaw = document.getElementById('f_colors').value.trim();
+  let colors = null;
+  if (colorsRaw) {
+    colors = {};
+    colorsRaw.split(',').forEach(pair => {
+      const [col, qty] = pair.split(':').map(s => s.trim());
+      if (col && qty) colors[col] = parseInt(qty) || 0;
+    });
+    if (Object.keys(colors).length === 0) colors = null;
+  }
   const newItem = {
     model,
     subcat: document.getElementById('f_subcat').value.trim() || 'Custom',
     stock: stock,
+    colors: colors,
     mrp,
     nlc,
     discFull,
@@ -2088,6 +2112,26 @@ function initRender() {
 
 
 
+
+
+const COLOR_MAP = {
+  midnight:'#1c1c1e', black:'#1c1c1e', space:'#48484a', graphite:'#54524f',
+  starlight:'#f5e6d3', white:'#f5f5f0', silver:'#e8e8e3', natural:'#e3d5c3',
+  blue:'#3a7bd5', skyblue:'#87ceeb', lightblue:'#add8e6', stormblue:'#4a6fa5',
+  purple:'#7b5ea7', deepblue:'#003087', ultramarine:'#3f00ff',
+  pink:'#ff69b4', salmoni:'#fa8072', red:'#e8003d', product_red:'#e8003d',
+  yellow:'#ffd700', green:'#34c759', teal:'#5ac8fa', orange:'#ff9500',
+  desert:'#c19a6b', gold:'#ffd700', titanium:'#8d8d8d',
+  'space gray':'#48484a','rose gold':'#b76e79','sierra blue':'#69abce',
+  'alpine green':'#4a7c59','midnight green':'#004953','pacific blue':'#006aac',
+};
+function getColorSwatch(name) {
+  const k = name.toLowerCase().replace(/\s+/g,'');
+  for (const [key, val] of Object.entries(COLOR_MAP)) {
+    if (k.includes(key.replace(/\s+/g,''))) return val;
+  }
+  return '#888';
+}
 
 // ── LOCAL STORAGE PERSISTENCE ─────────────────────────────────────────
 const LS_KEY = 'applePriceListData';
