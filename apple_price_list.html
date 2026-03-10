@@ -1451,6 +1451,9 @@ function getFilteredItems() {
   if (currentSubfilter !== 'all') {
     filtered = filtered.filter(i => i.subcat === currentSubfilter);
   }
+  if (filterStockOnly) {
+    filtered = filtered.filter(i => i.stock > 0);
+  }
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
     filtered = filtered.filter(i => i.model.toLowerCase().includes(q) || (i.desc||'').toLowerCase().includes(q));
@@ -1513,6 +1516,19 @@ function setSubfilter(sf) {
 
 function getTotalStock(cat) {
   return (data[cat] || []).reduce((sum, i) => sum + (parseInt(i.stock) || 0), 0);
+}
+
+function filterByStock(cat) {
+  if (currentCategory === cat && filterStockOnly) {
+    filterStockOnly = false; // toggle off
+  } else {
+    currentCategory = cat;
+    currentSubfilter = 'all';
+    filterStockOnly = true;
+  }
+  renderTabs();
+  renderSubfilters();
+  renderContent();
 }
 
 function renderTabs() {
