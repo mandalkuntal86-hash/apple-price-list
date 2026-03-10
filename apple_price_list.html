@@ -710,9 +710,12 @@
 
     /* ── Stock summary ── */
     .stock-summary-bar { gap: 6px; margin-bottom: 12px; }
-    .stock-summary-item { padding: 6px 12px; }
+    .stock-summary-item { padding: 6px 12px; border-radius: 8px; border: 1.5px solid transparent; transition: all 0.2s; }
+    .stock-summary-item:hover { background: var(--surface2); border-color: var(--border); }
+    .stock-summary-item.stock-active { background: rgba(48,209,88,0.12); border-color: #30D158; }
     .stock-summary-label { font-size: 12px; }
     .stock-summary-qty { font-size: 12px; }
+    .stock-summary-qty.stock-has { color: #30D158; font-weight: 600; }
 
     /* ── Subfilters ── */
     .subfilters { overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; margin-bottom: 12px; }
@@ -1494,9 +1497,11 @@ function setView(v) {
 function setCategory(cat) {
   currentCategory = cat;
   currentSubfilter = 'all';
+  filterStockOnly = false;
   renderTabs();
   renderSubfilters();
   renderContent();
+  renderStockBar();
 }
 
 function setSubfilter(sf) {
