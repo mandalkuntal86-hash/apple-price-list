@@ -1011,6 +1011,121 @@
     letter-spacing: 0.8px;
     text-transform: uppercase;
   }
+
+  /* ── ADMIN LOGIN STYLES ── */
+  .admin-login-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .admin-login-modal.open { display: flex; }
+  .admin-login-box {
+    background: #111;
+    border: 1px solid #2a2a2a;
+    border-radius: 22px;
+    width: 100%;
+    max-width: 380px;
+    padding: 36px 32px 28px;
+    animation: modalIn 0.25s ease;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+  }
+  .admin-login-logo {
+    text-align: center;
+    font-size: 38px;
+    margin-bottom: 6px;
+  }
+  .admin-login-title {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+    letter-spacing: -0.3px;
+  }
+  .admin-login-sub {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text3);
+    margin-bottom: 28px;
+  }
+  .admin-field {
+    margin-bottom: 14px;
+  }
+  .admin-field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+  .admin-field input {
+    width: 100%;
+    background: #1a1a1a;
+    border: 1.5px solid #2e2e2e;
+    border-radius: 11px;
+    padding: 11px 14px;
+    color: #fff;
+    font-size: 14px;
+    font-family: var(--font);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .admin-field input:focus { border-color: var(--accent); }
+  .admin-login-err {
+    font-size: 12px;
+    color: #FF453A;
+    text-align: center;
+    margin-bottom: 12px;
+    min-height: 18px;
+    font-weight: 500;
+  }
+  .admin-login-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 4px;
+  }
+  .admin-login-btn:hover { background: #1a8fff; transform: translateY(-1px); }
+  .admin-login-btn:active { transform: scale(0.98); }
+
+  .hdr-btn-admin {
+    color: #f97316;
+    border-color: rgba(249,115,22,0.35);
+    background: rgba(249,115,22,0.08);
+    gap: 5px;
+  }
+  .hdr-btn-admin:hover { background: rgba(249,115,22,0.18); border-color: rgba(249,115,22,0.6); color: #fb923c; }
+  .hdr-btn-admin.logged-in {
+    color: #30D158;
+    border-color: rgba(48,209,88,0.35);
+    background: rgba(48,209,88,0.08);
+  }
+  .hdr-btn-admin.logged-in:hover { background: rgba(48,209,88,0.18); border-color: rgba(48,209,88,0.6); }
+
+  /* Hide edit/delete actions when not admin */
+  body:not(.admin-mode) .card-actions { display: none !important; }
+  body:not(.admin-mode) .td-actions { visibility: hidden; pointer-events: none; }
+  body:not(.admin-mode) .fab-group { display: none !important; }
+
+  /* Admin badge on cards when logged in */
+  body.admin-mode .card { border-color: rgba(249,115,22,0.2); }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.min.js"></script>
@@ -1063,6 +1178,10 @@
         <button class="hdr-btn hdr-btn-green" onclick="exportExcel()" title="Excel">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
           <span class="btn-label">Excel</span>
+        </button>
+        <button class="hdr-btn hdr-btn-admin" id="adminBtn" onclick="handleAdminClick()" title="Admin Login">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/><path d="M18.6 21a6.6 6.6 0 0 0-13.2 0"/></svg>
+          <span class="btn-label" id="adminBtnLabel">Admin</span>
         </button>
       </div>
     </div>
@@ -2354,9 +2473,115 @@ window.addEventListener('load', () => {
   loadFromLocal();  // Show local data instantly
   initRender();
   fbInit().then(()=>fbStartHb()).catch(e=>console.error(e)); // Firebase in background
+  adminCheckSession();
+});
+
+// ── ADMIN PANEL ──────────────────────────────────────────────────────────────
+const ADMIN_ID   = 'mandalkuntal';
+const ADMIN_PASS = 'Buku@2016';
+const ADMIN_SESSION_KEY = '_apl_admin_session';
+
+let _isAdmin = false;
+
+function adminCheckSession() {
+  try {
+    if (sessionStorage.getItem(ADMIN_SESSION_KEY) === '1') {
+      _setAdminMode(true, false);
+    }
+  } catch(e) {}
+}
+
+function handleAdminClick() {
+  if (_isAdmin) {
+    if (confirm('Log out of Admin Panel?')) adminLogout();
+  } else {
+    document.getElementById('adminLoginModal').classList.add('open');
+    document.getElementById('adminUser').value = '';
+    document.getElementById('adminPass').value = '';
+    document.getElementById('adminErr').textContent = '';
+    setTimeout(() => document.getElementById('adminUser').focus(), 100);
+  }
+}
+
+function adminLogin() {
+  const u = document.getElementById('adminUser').value.trim();
+  const p = document.getElementById('adminPass').value;
+  if (u === ADMIN_ID && p === ADMIN_PASS) {
+    document.getElementById('adminLoginModal').classList.remove('open');
+    _setAdminMode(true, true);
+    showToast('✅ Admin mode enabled');
+  } else {
+    document.getElementById('adminErr').textContent = '⚠️ Invalid ID or password';
+    document.getElementById('adminPass').value = '';
+    document.getElementById('adminPass').focus();
+  }
+}
+
+function adminLogout() {
+  _setAdminMode(false, true);
+  showToast('🔒 Logged out of Admin Panel');
+}
+
+function _setAdminMode(on, persist) {
+  _isAdmin = on;
+  const btn = document.getElementById('adminBtn');
+  const lbl = document.getElementById('adminBtnLabel');
+  if (on) {
+    document.body.classList.add('admin-mode');
+    if (btn) btn.classList.add('logged-in');
+    if (lbl) lbl.textContent = 'Logout';
+    if (persist) { try { sessionStorage.setItem(ADMIN_SESSION_KEY, '1'); } catch(e) {} }
+  } else {
+    document.body.classList.remove('admin-mode');
+    if (btn) btn.classList.remove('logged-in');
+    if (lbl) lbl.textContent = 'Admin';
+    if (persist) { try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch(e) {} }
+  }
+}
+
+// Guard: intercept edit/delete/add if not admin
+const _origOpenModal = window.openModal;
+window.openModal = function() {
+  if (!_isAdmin) { showToast('🔒 Admin login required'); return; }
+  if (_origOpenModal) _origOpenModal.apply(this, arguments);
+};
+const _origEditProduct = window.editProduct;
+window.editProduct = function() {
+  if (!_isAdmin) { showToast('🔒 Admin login required'); return; }
+  if (_origEditProduct) _origEditProduct.apply(this, arguments);
+};
+const _origDeleteProduct = window.deleteProduct;
+window.deleteProduct = function() {
+  if (!_isAdmin) { showToast('🔒 Admin login required'); return; }
+  if (_origDeleteProduct) _origDeleteProduct.apply(this, arguments);
+};
+
+// Close admin modal on backdrop click
+document.addEventListener('click', function(e) {
+  const modal = document.getElementById('adminLoginModal');
+  if (modal && e.target === modal) modal.classList.remove('open');
 });
 
 </script>
+
+<!-- Admin Login Modal -->
+<div class="admin-login-modal" id="adminLoginModal">
+  <div class="admin-login-box">
+    <div class="admin-login-logo">🔐</div>
+    <div class="admin-login-title">Admin Panel</div>
+    <div class="admin-login-sub">Sign in to enable edit &amp; delete controls</div>
+    <div class="admin-field">
+      <label>User ID</label>
+      <input type="text" id="adminUser" placeholder="Enter admin ID" autocomplete="off" onkeydown="if(event.key==='Enter')adminLogin()" />
+    </div>
+    <div class="admin-field">
+      <label>Password</label>
+      <input type="password" id="adminPass" placeholder="Enter password" onkeydown="if(event.key==='Enter')adminLogin()" />
+    </div>
+    <div class="admin-login-err" id="adminErr"></div>
+    <button class="admin-login-btn" onclick="adminLogin()">Sign In</button>
+  </div>
+</div>
 
 <!-- Firebase Settings Modal -->
 <div class="modal-overlay" id="fbSettingsModal" onclick="if(event.target===this)this.classList.remove('open')">
