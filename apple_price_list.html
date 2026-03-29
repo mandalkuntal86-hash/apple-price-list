@@ -1812,6 +1812,7 @@ function setCategory(cat) {
 function switchToNormal(cat) {
   isResaleTab = false;
   currentCategory = cat;
+  try { localStorage.setItem('_activeTab', cat); } catch(e) {}
   currentSubfilter = 'all';
   filterStockOnly = false;
   // Show normal UI elements
@@ -1842,6 +1843,7 @@ function switchToNormal(cat) {
 
 function switchToResale() {
   isResaleTab = true;
+  try { localStorage.setItem('_activeTab', 'RESALE'); } catch(e) {}
   // Hide normal UI elements that don't apply
   document.getElementById('subfilters').style.display = 'none';
   document.getElementById('statsBar').style.display = 'none';
@@ -2549,7 +2551,7 @@ function renderTabs() {
     🔄 Resale <span class="tab-count">${resaleData.length}</span>
   </button>`;
 
-  el.innerHTML = normalTabs + resaleTab;
+  el.innerHTML = resaleTab + normalTabs;
 
   // Stock summary bar
   const stockBar = document.getElementById('stockSummaryBar');
@@ -3329,7 +3331,9 @@ document.addEventListener('visibilitychange',()=>{
         if (d&&d.IPHONE&&d._by!==_fbDev) {
           const d2={...d}; delete d2._by; delete d2._at;
           fbNorm(d2); Object.assign(data,d2); saveToLocal();
-          renderTabs(); renderSubfilters(); renderContent();
+          renderTabs();
+          if (isResaleTab) renderResaleContent();
+          else { renderSubfilters(); renderContent(); }
         }
       }
     }).catch(()=>{});
@@ -3377,7 +3381,28 @@ window.addEventListener('offline',()=>{ fbDot('error'); showToast('📵 Offline'
 window.addEventListener('load', () => {
   loadFromLocal();       // Show local data instantly
   loadResaleFromLocal(); // Load resale data
+
+  // Restore last active tab
+  try {
+    const savedTab = localStorage.getItem('_activeTab');
+    if (savedTab === 'RESALE') {
+      // Will call switchToResale() after initRender sets up DOM
+      isResaleTab = false; // let initRender run normally first
+    } else if (savedTab && ['IPHONE','IPAD','MACBOOK'].includes(savedTab)) {
+      currentCategory = savedTab;
+    }
+  } catch(e) {}
+
   initRender();
+
+  // After DOM is ready, switch to resale if that was the last tab
+  try {
+    const savedTab = localStorage.getItem('_activeTab');
+    if (savedTab === 'RESALE') {
+      switchToResale();
+    }
+  } catch(e) {}
+
   fbInit().then(()=>fbStartHb()).catch(e=>console.error(e)); // Firebase in background
   adminCheckSession();
 });
