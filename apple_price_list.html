@@ -1702,7 +1702,13 @@ function saveResale() {
 function loadResaleFromLocal() {
   try {
     const s = localStorage.getItem('_resaleData');
-    if (s) { const p = JSON.parse(s); if (Array.isArray(p)) resaleData = p; }
+    if (s) {
+      const p = JSON.parse(s);
+      if (Array.isArray(p)) {
+        const catNorm = { 'Mac':'MACBOOK','iPhone':'IPHONE','iPad':'IPAD','Other':'OTHER' };
+        resaleData = p.map(i => ({ ...i, category: catNorm[i.category] || i.category }));
+      }
+    }
   } catch(e){}
 }
 let isResaleTab = false;
@@ -1863,6 +1869,10 @@ function switchToResale() {
 
 function renderStockBar() { renderTabs(); }
 
+// ── RESALE FILTER STATE ────────────────────────────────────────────────
+let _resaleCatFilter = 'ALL';
+let _resaleSubcatFilter = 'ALL';
+
 // ── RESALE RENDER ──────────────────────────────────────────────────────
 function renderResaleContent() {
   const area = document.getElementById('contentArea');
@@ -1878,10 +1888,48 @@ function renderResaleContent() {
     return;
   }
 
-  const condMap = { new:'cond-new', good:'cond-good', fair:'cond-fair', poor:'cond-poor' };
-  const condLabel = { new:'Like New', good:'Good', fair:'Fair', poor:'Poor' };
+  const catLabels = { ALL:'All', IPHONE:'📱 iPhone', IPAD:'⬛ iPad', MACBOOK:'💻 Mac', OTHER:'📦 Other' };
 
-  const cards = resaleData.map((item, idx) => {
+  // Build available categories from data
+  const cats = ['ALL', ...Array.from(new Set(resaleData.map(i => i.category).filter(Boolean)))];
+
+  // Build subcategories for selected category
+  const subcats = _resaleCatFilter === 'ALL'
+    ? ['ALL', ...Array.from(new Set(resaleData.map(i => i.subcat).filter(Boolean)))]
+    : ['ALL', ...Array.from(new Set(resaleData.filter(i => i.category === _resaleCatFilter).map(i => i.subcat).filter(Boolean)))];
+
+  // Reset subcat filter if no longer valid
+  if (!subcats.includes(_resaleSubcatFilter)) _resaleSubcatFilter = 'ALL';
+
+  // Filter data
+  const filtered = resaleData.map((item, idx) => ({ item, idx })).filter(({ item }) => {
+    const catOk = _resaleCatFilter === 'ALL' || item.category === _resaleCatFilter;
+    const subcatOk = _resaleSubcatFilter === 'ALL' || item.subcat === _resaleSubcatFilter;
+    return catOk && subcatOk;
+  });
+
+  // Category filter chips
+  const catChips = cats.map(c => `
+    <button onclick="_resaleCatFilter='${c}';_resaleSubcatFilter='ALL';renderResaleContent()" style="
+      padding:5px 13px;border-radius:20px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;white-space:nowrap;transition:all 0.15s;
+      ${_resaleCatFilter === c
+        ? 'background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:1px solid transparent'
+        : 'background:rgba(124,58,237,0.08);color:#a855f7;border:1px solid rgba(124,58,237,0.2)'}
+    ">${catLabels[c] || c}</button>`).join('');
+
+  // Subcategory filter chips (only show if >1 subcat available)
+  const subcatChipsHtml = subcats.length > 1 ? `
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+      ${subcats.map(s => `
+        <button onclick="_resaleSubcatFilter='${s}';renderResaleContent()" style="
+          padding:4px 11px;border-radius:16px;font-size:11px;font-weight:600;font-family:var(--font);cursor:pointer;white-space:nowrap;transition:all 0.15s;
+          ${_resaleSubcatFilter === s
+            ? 'background:#a855f7;color:#fff;border:1px solid transparent'
+            : 'background:rgba(124,58,237,0.05);color:#a855f7;border:1px solid rgba(124,58,237,0.15)'}
+        ">${s === 'ALL' ? 'All Models' : s}</button>`).join('')}
+    </div>` : '';
+
+  const cards = filtered.map(({ item, idx }) => {
     const net = item.nlc ? (item.nlc - (item.cardDisc || 0)) : 0;
     const diff = net ? (item.resalePrice - net) : 0;
     const diffHtml = net ? `<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;${diff > 0 ? 'background:rgba(48,209,88,0.12);color:#30D158;border:1px solid rgba(48,209,88,0.3)' : diff < 0 ? 'background:rgba(255,69,58,0.12);color:#FF453A;border:1px solid rgba(255,69,58,0.3)' : 'color:var(--text3)'}">
@@ -1895,7 +1943,7 @@ function renderResaleContent() {
         <span class="resale-badge">🔄 RESALE</span>
         <div class="resale-model">${item.model}</div>
         ${(item.category || item.subcat) ? `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px">
-          ${item.category ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text3)">${{IPHONE:'📱 iPhone',IPAD:'⬛ iPad',MACBOOK:'💻 Mac',OTHER:'📦 Other'}[item.category]||item.category}</span>` : ''}
+          ${item.category ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text3)">${catLabels[item.category]||item.category}</span>` : ''}
           ${item.subcat ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.2);color:#a855f7">${item.subcat}</span>` : ''}
         </div>` : ''}
         ${item.note ? `<div class="resale-meta">${item.note}</div>` : ''}
@@ -1917,13 +1965,17 @@ function renderResaleContent() {
     </div>`;
   }).join('');
 
+  const noResults = filtered.length === 0 ? `<div style="text-align:center;padding:40px 20px;color:var(--text3);font-size:14px">No items match the selected filter.</div>` : '';
+
   area.innerHTML = `
-    <div style="font-size:13px;color:var(--text3);margin-bottom:14px;display:flex;align-items:center;gap:8px;">
-      <span style="color:#a855f7;font-weight:600;">${resaleData.length} resale item${resaleData.length > 1 ? 's' : ''}</span>
-      <span style="color:var(--border)">|</span>
-      <span>Full Payment Only</span>
+    <div style="margin-bottom:16px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        ${catChips}
+        <span style="margin-left:auto;font-size:12px;color:var(--text3)">${filtered.length} of ${resaleData.length} item${resaleData.length !== 1 ? 's' : ''}</span>
+      </div>
+      ${subcatChipsHtml}
     </div>
-    <div class="grid">${cards}</div>
+    <div class="grid">${cards}${noResults}</div>
   `;
 
   // Attach swipe listeners
@@ -2076,14 +2128,17 @@ function submitResaleProduct() {
   const nlc       = parseInt(document.getElementById('rf_nlc').value) || 0;
   const cardDisc  = parseInt(document.getElementById('rf_cardDisc').value) || 0;
   const note      = document.getElementById('rf_note').value.trim();
-  const condition = document.getElementById('rf_condition').value;
   const errEl     = document.getElementById('rf_error');
 
   if (!model) { errEl.textContent = 'Model name is required.'; errEl.style.display = 'block'; return; }
   if (!price) { errEl.textContent = 'Resale price is required.'; errEl.style.display = 'block'; return; }
   errEl.style.display = 'none';
 
-  const newItem = { category, subcat, model, resalePrice: price, mrp, nlc, cardDisc, note, condition, addedAt: Date.now() };
+  // Normalize category to key form in case old data used labels
+  const catNorm = { 'Mac':'MACBOOK','iPhone':'IPHONE','iPad':'IPAD','Other':'OTHER' };
+  const categoryKey = catNorm[category] || category;
+
+  const newItem = { category: categoryKey, subcat, model, resalePrice: price, mrp, nlc, cardDisc, note, addedAt: Date.now() };
   const editIdxRaw = document.getElementById('resaleModalOverlay').dataset.editIdx;
   const isEdit = editIdxRaw !== '' && editIdxRaw !== undefined && editIdxRaw !== null;
 
@@ -2813,8 +2868,9 @@ function fbNorm(d) {
   });
   // Load resale data from Firebase doc
   if (Array.isArray(d._resale)) {
+    const catNorm = { 'Mac':'MACBOOK','iPhone':'IPHONE','iPad':'IPAD','Other':'OTHER' };
     resaleData.length = 0;
-    d._resale.forEach(i => resaleData.push(i));
+    d._resale.forEach(i => resaleData.push({ ...i, category: catNorm[i.category] || i.category }));
     localStorage.setItem('_resaleData', JSON.stringify(resaleData));
   }
   return d;
