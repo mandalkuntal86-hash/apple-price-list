@@ -2070,7 +2070,6 @@ function openResaleModal(editIdx) {
   document.getElementById('rf_nlc').value = '';
   document.getElementById('rf_cardDisc').value = '';
   document.getElementById('rf_note').value = '';
-  document.getElementById('rf_condition').value = 'good';
   document.getElementById('rf_error').style.display = 'none';
   document.getElementById('rf_net_preview').style.display = 'none';
   document.getElementById('resaleModalOverlay').dataset.editIdx = (editIdx !== undefined) ? editIdx : '';
@@ -2087,7 +2086,6 @@ function openResaleModal(editIdx) {
     document.getElementById('rf_nlc').value = item.nlc || '';
     document.getElementById('rf_cardDisc').value = item.cardDisc || '';
     document.getElementById('rf_note').value = item.note || '';
-    document.getElementById('rf_condition').value = item.condition || 'good';
     calcResaleNet();
   }
   setTimeout(() => document.getElementById('rf_model').focus(), 100);
