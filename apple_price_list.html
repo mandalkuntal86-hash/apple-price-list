@@ -1827,6 +1827,8 @@ function switchToNormal(cat) {
   // Remove resale FAB if present
   const resFab = document.getElementById('resaleFab');
   if (resFab) resFab.remove();
+  const impFab = document.getElementById('importResaleFab');
+  if (impFab) impFab.remove();
 
   renderTabs();
   renderSubfilters();
@@ -1861,6 +1863,18 @@ function switchToResale() {
     document.body.appendChild(fab);
   } else {
     document.getElementById('resaleFab').style.display = _isAdmin ? 'flex' : 'none';
+  }
+
+  // Add import-from-catalogue FAB
+  if (!document.getElementById('importResaleFab')) {
+    const imp = document.createElement('button');
+    imp.id = 'importResaleFab';
+    imp.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg> Import iPad`;
+    imp.onclick = () => openImportModal();
+    imp.style.cssText = `position:fixed;bottom:96px;right:28px;z-index:200;align-items:center;gap:7px;padding:10px 18px;border-radius:22px;font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer;border:none;background:linear-gradient(135deg,#0071e3,#34aadc);color:#fff;box-shadow:0 4px 20px rgba(0,113,227,0.4);display:${_isAdmin ? 'flex' : 'none'}`;
+    document.body.appendChild(imp);
+  } else {
+    document.getElementById('importResaleFab').style.display = _isAdmin ? 'flex' : 'none';
   }
 
   renderTabs();
@@ -2199,6 +2213,90 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
+// ── IMPORT iPAD TO RESALE ──────────────────────────────────────────────
+let _importSubcat = 'ALL';
+
+function openImportModal() {
+  if (!_isAdmin) { showToast('🔒 Admin login required'); return; }
+  _importSubcat = 'ALL';
+  const el = document.getElementById('importResaleOverlay');
+  el.style.display = 'flex';
+  requestAnimationFrame(() => el.style.opacity = '1');
+  renderImportSubcatTabs();
+  renderImportList();
+}
+
+function closeImportModal() {
+  const el = document.getElementById('importResaleOverlay');
+  el.style.opacity = '0';
+  setTimeout(() => el.style.display = 'none', 200);
+}
+
+function renderImportSubcatTabs() {
+  const subcats = ['ALL', ...Array.from(new Set((data.IPAD || []).map(i => i.subcat).filter(Boolean)))];
+  const tabsEl = document.getElementById('importSubcatTabs');
+  tabsEl.innerHTML = subcats.map(s => `
+    <button onclick="_importSubcat='${s}';renderImportSubcatTabs();renderImportList()" style="
+      padding:5px 13px;border-radius:16px;font-size:11px;font-weight:600;font-family:var(--font);cursor:pointer;white-space:nowrap;
+      ${_importSubcat === s ? 'background:#0071e3;color:#fff;border:1px solid transparent' : 'background:rgba(0,113,227,0.1);color:#34aadc;border:1px solid rgba(0,113,227,0.2)'}
+    ">${s === 'ALL' ? 'All iPads' : s}</button>`).join('');
+}
+
+function renderImportList() {
+  const items = (data.IPAD || []).filter(i => _importSubcat === 'ALL' || i.subcat === _importSubcat);
+  const listEl = document.getElementById('importItemsList');
+  listEl.innerHTML = items.map((item, i) => {
+    const globalIdx = data.IPAD.indexOf(item);
+    const alreadyIn = resaleData.some(r => r.model === item.model && r.category === 'IPAD');
+    return `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 8px;border-bottom:1px solid #1e1e1e;${alreadyIn ? 'opacity:0.4' : ''}">
+      <input type="checkbox" id="imp_chk_${globalIdx}" onchange="updateImportCount()" ${alreadyIn ? 'disabled' : ''} style="width:16px;height:16px;accent-color:#0071e3;flex-shrink:0;cursor:pointer">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;color:#f5f5f7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.model}</div>
+        <div style="font-size:11px;color:#8e8e93;margin-top:1px">MRP ${fmt(item.mrp)} ${alreadyIn ? '· Already in resale' : ''}</div>
+      </div>
+      <input type="number" id="imp_price_${globalIdx}" placeholder="Resale ₹" min="0" style="width:120px;flex-shrink:0;background:#1a1a1a;border:1px solid #3a3a3a;border-radius:8px;padding:6px 10px;font-size:13px;color:#f5f5f7;font-family:var(--font);outline:none" ${alreadyIn ? 'disabled' : ''} oninput="if(this.value && document.getElementById('imp_chk_${globalIdx}'))document.getElementById('imp_chk_${globalIdx}').checked=true;updateImportCount()">
+    </div>`;
+  }).join('');
+  updateImportCount();
+}
+
+function updateImportCount() {
+  const checked = document.querySelectorAll('[id^="imp_chk_"]:checked').length;
+  document.getElementById('importSelCount').textContent = `${checked} item${checked !== 1 ? 's' : ''} selected`;
+}
+
+function submitImport() {
+  const checkboxes = document.querySelectorAll('[id^="imp_chk_"]:checked');
+  if (!checkboxes.length) { showToast('⚠️ Select at least one item'); return; }
+  let added = 0, skipped = 0;
+  checkboxes.forEach(chk => {
+    const idx = parseInt(chk.id.replace('imp_chk_', ''));
+    const item = data.IPAD[idx];
+    const priceInput = document.getElementById(`imp_price_${idx}`);
+    const resalePrice = parseInt(priceInput?.value) || 0;
+    if (!resalePrice) { skipped++; return; }
+    resaleData.unshift({
+      category: 'IPAD',
+      subcat: item.subcat || '',
+      model: item.model,
+      mrp: item.mrp || 0,
+      nlc: item.nlc || 0,
+      cardDisc: item.discFull || 0,
+      note: '',
+      resalePrice,
+      addedAt: Date.now()
+    });
+    added++;
+  });
+  if (added === 0) { showToast('⚠️ Enter resale price for selected items'); return; }
+  saveResale();
+  closeImportModal();
+  showToast(`✅ ${added} iPad${added > 1 ? 's' : ''} imported to Resale${skipped ? ` (${skipped} skipped — no price)` : ''}`);
+  renderTabs();
+  renderResaleContent();
+}
+
 function confirmDeleteResale(idx) {
   if (!_isAdmin) { showToast('🔒 Admin login required'); return; }
   const item = resaleData[idx];
@@ -2337,6 +2435,8 @@ function submitResaleProduct() {
   document.querySelector('.fab-group').style.display = 'none';
   const resFab = document.getElementById('resaleFab');
   if (resFab) resFab.style.display = _isAdmin ? 'flex' : 'none';
+  const impFab2 = document.getElementById('importResaleFab');
+  if (impFab2) impFab2.style.display = _isAdmin ? 'flex' : 'none';
 
   renderTabs();
   renderResaleContent();
@@ -3368,6 +3468,29 @@ document.addEventListener('click', function(e) {
     </div>
     <div id="rf_error" style="color:#FF453A;font-size:13px;margin-top:8px;display:none"></div>
     <button class="btn-submit" style="background:linear-gradient(135deg,#7c3aed,#a855f7);margin-top:20px" onclick="submitResaleProduct()">Add Resale Item</button>
+  </div>
+</div>
+
+<!-- Import iPad to Resale Modal -->
+<div class="modal-overlay" id="importResaleOverlay" onclick="if(event.target===this)closeImportModal()" style="display:none;opacity:0;transition:opacity 0.2s">
+  <div class="modal" style="max-width:680px;max-height:88vh;display:flex;flex-direction:column;padding:0;overflow:hidden">
+    <div class="modal-header" style="padding:20px 24px;border-bottom:1px solid #2a2a2a;flex-shrink:0">
+      <div>
+        <div class="modal-title">⬛ Import iPads to Resale</div>
+        <div style="font-size:12px;color:#8e8e93;margin-top:3px">Enter resale price for each item you want to import</div>
+      </div>
+      <button class="modal-close" onclick="closeImportModal()">&#x2715;</button>
+    </div>
+    <!-- Subcat filter tabs -->
+    <div id="importSubcatTabs" style="display:flex;gap:6px;flex-wrap:wrap;padding:12px 24px;border-bottom:1px solid #222;flex-shrink:0;background:#111"></div>
+    <!-- List -->
+    <div id="importItemsList" style="overflow-y:auto;flex:1;padding:12px 16px;"></div>
+    <!-- Footer -->
+    <div style="padding:16px 24px;border-top:1px solid #2a2a2a;flex-shrink:0;display:flex;gap:10px;align-items:center">
+      <span id="importSelCount" style="font-size:13px;color:#8e8e93;flex:1">0 items selected</span>
+      <button onclick="closeImportModal()" style="padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;border:1px solid #3a3a3a;background:#2c2c2e;color:#f5f5f7">Cancel</button>
+      <button onclick="submitImport()" style="padding:10px 24px;border-radius:10px;font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer;border:none;background:linear-gradient(135deg,#0071e3,#34aadc);color:#fff">Import Selected</button>
+    </div>
   </div>
 </div>
 
