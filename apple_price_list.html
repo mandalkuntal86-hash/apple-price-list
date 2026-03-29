@@ -1829,6 +1829,10 @@ function switchToNormal(cat) {
   if (resFab) resFab.remove();
   const impFab = document.getElementById('importResaleFab');
   if (impFab) impFab.remove();
+  const impMacFab = document.getElementById('importMacResaleFab');
+  if (impMacFab) impMacFab.remove();
+  const impIphFab = document.getElementById('importIphoneResaleFab');
+  if (impIphFab) impIphFab.remove();
 
   renderTabs();
   renderSubfilters();
@@ -1865,16 +1869,40 @@ function switchToResale() {
     document.getElementById('resaleFab').style.display = _isAdmin ? 'flex' : 'none';
   }
 
-  // Add import-from-catalogue FAB
+  // Add import iPad FAB
   if (!document.getElementById('importResaleFab')) {
     const imp = document.createElement('button');
     imp.id = 'importResaleFab';
     imp.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg> Import iPad`;
-    imp.onclick = () => openImportModal();
+    imp.onclick = () => openImportModal('IPAD');
     imp.style.cssText = `position:fixed;bottom:96px;right:28px;z-index:200;align-items:center;gap:7px;padding:10px 18px;border-radius:22px;font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer;border:none;background:linear-gradient(135deg,#0071e3,#34aadc);color:#fff;box-shadow:0 4px 20px rgba(0,113,227,0.4);display:${_isAdmin ? 'flex' : 'none'}`;
     document.body.appendChild(imp);
   } else {
     document.getElementById('importResaleFab').style.display = _isAdmin ? 'flex' : 'none';
+  }
+
+  // Add import MacBook FAB
+  if (!document.getElementById('importMacResaleFab')) {
+    const impMac = document.createElement('button');
+    impMac.id = 'importMacResaleFab';
+    impMac.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg> Import MacBook`;
+    impMac.onclick = () => openImportModal('MACBOOK');
+    impMac.style.cssText = `position:fixed;bottom:152px;right:28px;z-index:200;align-items:center;gap:7px;padding:10px 18px;border-radius:22px;font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer;border:none;background:linear-gradient(135deg,#30d158,#1d8348);color:#fff;box-shadow:0 4px 20px rgba(48,209,88,0.4);display:${_isAdmin ? 'flex' : 'none'}`;
+    document.body.appendChild(impMac);
+  } else {
+    document.getElementById('importMacResaleFab').style.display = _isAdmin ? 'flex' : 'none';
+  }
+
+  // Add import iPhone FAB
+  if (!document.getElementById('importIphoneResaleFab')) {
+    const impIph = document.createElement('button');
+    impIph.id = 'importIphoneResaleFab';
+    impIph.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg> Import iPhone`;
+    impIph.onclick = () => openImportModal('IPHONE');
+    impIph.style.cssText = `position:fixed;bottom:208px;right:28px;z-index:200;align-items:center;gap:7px;padding:10px 18px;border-radius:22px;font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer;border:none;background:linear-gradient(135deg,#ff9500,#ff6b00);color:#fff;box-shadow:0 4px 20px rgba(255,149,0,0.4);display:${_isAdmin ? 'flex' : 'none'}`;
+    document.body.appendChild(impIph);
+  } else {
+    document.getElementById('importIphoneResaleFab').style.display = _isAdmin ? 'flex' : 'none';
   }
 
   renderTabs();
@@ -1960,7 +1988,20 @@ function renderResaleContent() {
           ${item.category ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text3)">${catLabels[item.category]||item.category}</span>` : ''}
           ${item.subcat ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.2);color:#a855f7">${item.subcat}</span>` : ''}
         </div>` : ''}
-        ${item.note ? `<div class="resale-meta">${item.note}</div>` : ''}
+        ${item.note ? `<div class="resale-meta">${item.note}</div>` : (() => {
+          // For MacBook resale items, try to find specs from normal data
+          if (item.category === 'MACBOOK') {
+            const ref = (data.MACBOOK || []).find(m => m.model === item.model);
+            if (ref) {
+              const parts = [];
+              if (ref.desc) parts.push(ref.desc);
+              if (ref.ram && ref.ram !== '—') parts.push(ref.ram + ' RAM');
+              if (ref.storage) parts.push(ref.storage);
+              if (parts.length) return `<div class="resale-meta">${parts.join(' · ')}</div>`;
+            }
+          }
+          return '';
+        })()}
         <div class="resale-divider"></div>
         ${item.mrp ? `<div class="resale-price-row"><span class="resale-price-label">MRP</span><span style="font-size:13px;color:var(--text2);font-weight:400;">${fmt(item.mrp)}</span></div>` : ''}
         ${item.nlc ? `<div class="resale-price-row"><span class="resale-price-label">Dealer / NLC</span><span style="font-size:13px;font-weight:600;color:var(--text)">${fmt(item.nlc)}</span></div>` : ''}
@@ -2214,12 +2255,17 @@ function roundRect(ctx, x, y, w, h, r) {
 }
 
 // ── IMPORT iPAD TO RESALE ──────────────────────────────────────────────
+let _importCategory = 'IPAD';
 let _importSubcat = 'ALL';
 
-function openImportModal() {
+function openImportModal(category) {
   if (!_isAdmin) { showToast('🔒 Admin login required'); return; }
+  _importCategory = category || 'IPAD';
   _importSubcat = 'ALL';
   const el = document.getElementById('importResaleOverlay');
+  // Update modal title based on category
+  const titles = { IPAD: '⬛ Import iPads to Resale', MACBOOK: '💻 Import MacBooks to Resale', IPHONE: '📱 Import iPhones to Resale' };
+  el.querySelector('.modal-title').textContent = titles[_importCategory] || titles.IPAD;
   el.style.display = 'flex';
   requestAnimationFrame(() => el.style.opacity = '1');
   renderImportSubcatTabs();
@@ -2233,27 +2279,39 @@ function closeImportModal() {
 }
 
 function renderImportSubcatTabs() {
-  const subcats = ['ALL', ...Array.from(new Set((data.IPAD || []).map(i => i.subcat).filter(Boolean)))];
+  const catData = data[_importCategory] || [];
+  const subcats = ['ALL', ...Array.from(new Set(catData.map(i => i.subcat).filter(Boolean)))];
   const tabsEl = document.getElementById('importSubcatTabs');
+  const allLabel = _importCategory === 'IPAD' ? 'All iPads' : _importCategory === 'MACBOOK' ? 'All Macs' : 'All iPhones';
   tabsEl.innerHTML = subcats.map(s => `
     <button onclick="_importSubcat='${s}';renderImportSubcatTabs();renderImportList()" style="
       padding:5px 13px;border-radius:16px;font-size:11px;font-weight:600;font-family:var(--font);cursor:pointer;white-space:nowrap;
       ${_importSubcat === s ? 'background:#0071e3;color:#fff;border:1px solid transparent' : 'background:rgba(0,113,227,0.1);color:#34aadc;border:1px solid rgba(0,113,227,0.2)'}
-    ">${s === 'ALL' ? 'All iPads' : s}</button>`).join('');
+    ">${s === 'ALL' ? allLabel : s}</button>`).join('');
 }
 
 function renderImportList() {
-  const items = (data.IPAD || []).filter(i => _importSubcat === 'ALL' || i.subcat === _importSubcat);
+  const catData = data[_importCategory] || [];
+  const items = catData.filter(i => _importSubcat === 'ALL' || i.subcat === _importSubcat);
   const listEl = document.getElementById('importItemsList');
   listEl.innerHTML = items.map((item, i) => {
-    const globalIdx = data.IPAD.indexOf(item);
-    const alreadyIn = resaleData.some(r => r.model === item.model && r.category === 'IPAD');
+    const globalIdx = catData.indexOf(item);
+    const alreadyIn = resaleData.some(r => r.model === item.model && r.category === _importCategory);
+    // Build spec line for MacBook
+    let specLine = '';
+    if (_importCategory === 'MACBOOK') {
+      const parts = [];
+      if (item.desc) parts.push(item.desc);
+      if (item.ram && item.ram !== '—') parts.push(item.ram + ' RAM');
+      if (item.storage) parts.push(item.storage);
+      specLine = parts.join(' · ');
+    }
     return `
     <div style="display:flex;align-items:center;gap:10px;padding:10px 8px;border-bottom:1px solid #1e1e1e;${alreadyIn ? 'opacity:0.4' : ''}">
       <input type="checkbox" id="imp_chk_${globalIdx}" onchange="updateImportCount()" ${alreadyIn ? 'disabled' : ''} style="width:16px;height:16px;accent-color:#0071e3;flex-shrink:0;cursor:pointer">
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;color:#f5f5f7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.model}</div>
-        <div style="font-size:11px;color:#8e8e93;margin-top:1px">MRP ${fmt(item.mrp)} ${alreadyIn ? '· Already in resale' : ''}</div>
+        <div style="font-size:11px;color:#8e8e93;margin-top:1px">${specLine ? `<span style="color:#a78bfa">${specLine}</span> · ` : ''}MRP ${fmt(item.mrp)} ${alreadyIn ? '· Already in resale' : ''}</div>
       </div>
       <input type="number" id="imp_price_${globalIdx}" placeholder="Resale ₹" min="0" style="width:120px;flex-shrink:0;background:#1a1a1a;border:1px solid #3a3a3a;border-radius:8px;padding:6px 10px;font-size:13px;color:#f5f5f7;font-family:var(--font);outline:none" ${alreadyIn ? 'disabled' : ''} oninput="if(this.value && document.getElementById('imp_chk_${globalIdx}'))document.getElementById('imp_chk_${globalIdx}').checked=true;updateImportCount()">
     </div>`;
@@ -2269,15 +2327,17 @@ function updateImportCount() {
 function submitImport() {
   const checkboxes = document.querySelectorAll('[id^="imp_chk_"]:checked');
   if (!checkboxes.length) { showToast('⚠️ Select at least one item'); return; }
+  const catData = data[_importCategory] || [];
+  const catLabel = { IPAD: 'iPad', MACBOOK: 'MacBook', IPHONE: 'iPhone' }[_importCategory] || _importCategory;
   let added = 0, skipped = 0;
   checkboxes.forEach(chk => {
     const idx = parseInt(chk.id.replace('imp_chk_', ''));
-    const item = data.IPAD[idx];
+    const item = catData[idx];
     const priceInput = document.getElementById(`imp_price_${idx}`);
     const resalePrice = parseInt(priceInput?.value) || 0;
     if (!resalePrice) { skipped++; return; }
-    resaleData.unshift({
-      category: 'IPAD',
+    const entry = {
+      category: _importCategory,
       subcat: item.subcat || '',
       model: item.model,
       mrp: item.mrp || 0,
@@ -2286,13 +2346,22 @@ function submitImport() {
       note: '',
       resalePrice,
       addedAt: Date.now()
-    });
+    };
+    // Carry MacBook description fields
+    if (_importCategory === 'MACBOOK') {
+      const specParts = [];
+      if (item.desc) specParts.push(item.desc);
+      if (item.ram && item.ram !== '—') specParts.push(item.ram + ' RAM');
+      if (item.storage) specParts.push(item.storage);
+      entry.note = specParts.join(' · ');
+    }
+    resaleData.unshift(entry);
     added++;
   });
   if (added === 0) { showToast('⚠️ Enter resale price for selected items'); return; }
   saveResale();
   closeImportModal();
-  showToast(`✅ ${added} iPad${added > 1 ? 's' : ''} imported to Resale${skipped ? ` (${skipped} skipped — no price)` : ''}`);
+  showToast(`✅ ${added} ${catLabel}${added > 1 ? 's' : ''} imported to Resale${skipped ? ` (${skipped} skipped — no price)` : ''}`);
   renderTabs();
   renderResaleContent();
 }
@@ -3377,6 +3446,12 @@ function _setAdminMode(on, persist) {
   // Refresh resale FAB visibility
   const resFab = document.getElementById('resaleFab');
   if (resFab) resFab.style.display = on ? 'flex' : 'none';
+  const impFab = document.getElementById('importResaleFab');
+  if (impFab) impFab.style.display = on ? 'flex' : 'none';
+  const impMacFab = document.getElementById('importMacResaleFab');
+  if (impMacFab) impMacFab.style.display = on ? 'flex' : 'none';
+  const impIphFab = document.getElementById('importIphoneResaleFab');
+  if (impIphFab) impIphFab.style.display = on ? 'flex' : 'none';
   // Re-render resale cards if resale tab is active (to show/hide edit button)
   if (isResaleTab) renderResaleContent();
 }
