@@ -1934,23 +1934,33 @@ function renderResaleContent() {
 
   const catLabels = { ALL:'All', IPHONE:'📱 iPhone', IPAD:'⬛ iPad', MACBOOK:'💻 Mac', OTHER:'📦 Other' };
 
-  // Build available categories from data
-  const cats = ['ALL', ...Array.from(new Set(resaleData.map(i => i.category).filter(Boolean)))];
+  // Fixed category order: All → Mac → iPhone → iPad → Other (only show categories that exist in data)
+  const catOrder = ['ALL', 'MACBOOK', 'IPHONE', 'IPAD', 'OTHER'];
+  const presentCats = new Set(resaleData.map(i => i.category).filter(Boolean));
+  const cats = catOrder.filter(c => c === 'ALL' || presentCats.has(c));
 
-  // Build subcategories for selected category
-  const subcats = _resaleCatFilter === 'ALL'
-    ? ['ALL', ...Array.from(new Set(resaleData.map(i => i.subcat).filter(Boolean)))]
-    : ['ALL', ...Array.from(new Set(resaleData.filter(i => i.category === _resaleCatFilter).map(i => i.subcat).filter(Boolean)))];
+  // Build subcategories for selected category — in reverse-insertion order (newest subcat first)
+  const rawSubcats = _resaleCatFilter === 'ALL'
+    ? resaleData.map(i => i.subcat).filter(Boolean)
+    : resaleData.filter(i => i.category === _resaleCatFilter).map(i => i.subcat).filter(Boolean);
+  // Deduplicate preserving first-occurrence order, then reverse so newest is first
+  const seenSubs = new Set();
+  const orderedSubs = [];
+  for (const s of rawSubcats) { if (!seenSubs.has(s)) { seenSubs.add(s); orderedSubs.push(s); } }
+  const subcats = ['ALL', ...orderedSubs.reverse()];
 
   // Reset subcat filter if no longer valid
   if (!subcats.includes(_resaleSubcatFilter)) _resaleSubcatFilter = 'ALL';
 
-  // Filter data
-  const filtered = resaleData.map((item, idx) => ({ item, idx })).filter(({ item }) => {
-    const catOk = _resaleCatFilter === 'ALL' || item.category === _resaleCatFilter;
-    const subcatOk = _resaleSubcatFilter === 'ALL' || item.subcat === _resaleSubcatFilter;
-    return catOk && subcatOk;
-  });
+  // Filter data and always sort by resale price low → high
+  const filtered = resaleData
+    .map((item, idx) => ({ item, idx }))
+    .filter(({ item }) => {
+      const catOk = _resaleCatFilter === 'ALL' || item.category === _resaleCatFilter;
+      const subcatOk = _resaleSubcatFilter === 'ALL' || item.subcat === _resaleSubcatFilter;
+      return catOk && subcatOk;
+    })
+    .sort((a, b) => (a.item.resalePrice || 0) - (b.item.resalePrice || 0));
 
   // Category filter chips
   const catChips = cats.map(c => `
