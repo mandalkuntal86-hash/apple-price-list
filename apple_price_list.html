@@ -1884,6 +1884,10 @@ function renderResaleContent() {
       <div class="resale-card-inner">
         <span class="resale-badge">🔄 RESALE</span>
         <div class="resale-model">${item.model}</div>
+        ${(item.category || item.subcat) ? `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px">
+          ${item.category ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text3)">${{IPHONE:'📱 iPhone',IPAD:'⬛ iPad',MACBOOK:'💻 Mac',OTHER:'📦 Other'}[item.category]||item.category}</span>` : ''}
+          ${item.subcat ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.2);color:#a855f7">${item.subcat}</span>` : ''}
+        </div>` : ''}
         ${item.note ? `<div class="resale-meta">${item.note}</div>` : ''}
         <span class="resale-condition ${condMap[item.condition] || 'cond-good'}">${condLabel[item.condition] || 'Good'}</span>
         <div class="resale-divider"></div>
@@ -1977,6 +1981,9 @@ function deleteResaleItem(idx) {
 function openResaleModal(editIdx) {
   if (!_isAdmin) { showToast('🔒 Admin login required'); return; }
   document.getElementById('resaleModalOverlay').classList.add('open');
+  document.getElementById('rf_category').value = 'IPHONE';
+  updateResaleSubcats();
+  document.getElementById('rf_subcat').value = '';
   document.getElementById('rf_model').value = '';
   document.getElementById('rf_price').value = '';
   document.getElementById('rf_mrp').value = '';
@@ -1992,6 +1999,9 @@ function openResaleModal(editIdx) {
   document.querySelector('#resaleModalOverlay .btn-submit').textContent = isEdit ? 'Save Changes' : 'Add Resale Item';
   if (isEdit) {
     const item = resaleData[editIdx];
+    document.getElementById('rf_category').value = item.category || 'IPHONE';
+    updateResaleSubcats();
+    document.getElementById('rf_subcat').value = item.subcat || '';
     document.getElementById('rf_model').value = item.model || '';
     document.getElementById('rf_price').value = item.resalePrice || '';
     document.getElementById('rf_mrp').value = item.mrp || '';
@@ -2006,6 +2016,22 @@ function openResaleModal(editIdx) {
 function closeResaleModal() {
   document.getElementById('resaleModalOverlay').classList.remove('open');
 }
+const resaleSubcats = {
+  IPHONE:  ['iPhone 17 Pro', 'iPhone 17', 'iPhone Air', 'iPhone 16 Pro', 'iPhone 16 Plus', 'iPhone 16e', 'iPhone 16', 'iPhone 15 Plus', 'iPhone 15', 'iPhone 14', 'iPhone 13', 'Other'],
+  IPAD:    ['iPad Pro M4', 'iPad Pro M2', 'iPad Air M3', 'iPad Air M2', 'iPad mini', 'iPad (10th gen)', 'iPad (9th gen)', 'Other'],
+  MACBOOK: ['MacBook Air M4', 'MacBook Air M3', 'MacBook Air M2', 'MacBook Pro M4', 'MacBook Pro M3', 'MacBook Pro M2', 'Mac mini', 'Mac Studio', 'iMac', 'Other'],
+  OTHER:   ['Apple Watch', 'AirPods', 'Apple TV', 'HomePod', 'Accessories', 'Other'],
+};
+
+function updateResaleSubcats() {
+  const cat = document.getElementById('rf_category').value;
+  const sel = document.getElementById('rf_subcat');
+  const prev = sel.value;
+  const opts = resaleSubcats[cat] || [];
+  sel.innerHTML = '<option value="">— Select —</option>' +
+    opts.map(s => `<option value="${s}" ${s === prev ? 'selected' : ''}>${s}</option>`).join('');
+}
+
 function calcResaleNet() {
   const nlc = parseInt(document.getElementById('rf_nlc').value) || 0;
   const disc = parseInt(document.getElementById('rf_cardDisc').value) || 0;
@@ -2024,6 +2050,8 @@ function calcResaleNet() {
 }
 
 function submitResaleProduct() {
+  const category  = document.getElementById('rf_category').value;
+  const subcat    = document.getElementById('rf_subcat').value;
   const model     = document.getElementById('rf_model').value.trim();
   const price     = parseInt(document.getElementById('rf_price').value) || 0;
   const mrp       = parseInt(document.getElementById('rf_mrp').value) || 0;
@@ -2037,7 +2065,7 @@ function submitResaleProduct() {
   if (!price) { errEl.textContent = 'Resale price is required.'; errEl.style.display = 'block'; return; }
   errEl.style.display = 'none';
 
-  const newItem = { model, resalePrice: price, mrp, nlc, cardDisc, note, condition, addedAt: Date.now() };
+  const newItem = { category, subcat, model, resalePrice: price, mrp, nlc, cardDisc, note, condition, addedAt: Date.now() };
   const editIdx = document.getElementById('resaleModalOverlay').dataset.editIdx;
   if (editIdx !== '') {
     resaleData[parseInt(editIdx)] = { ...resaleData[parseInt(editIdx)], ...newItem };
@@ -2999,6 +3027,23 @@ document.addEventListener('click', function(e) {
     <div class="modal-header">
       <div class="modal-title">🔄 Add Resale Item</div>
       <button class="modal-close" onclick="closeResaleModal()">&#x2715;</button>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row">
+        <label>Category *</label>
+        <select id="rf_category" onchange="updateResaleSubcats()">
+          <option value="IPHONE">📱 iPhone</option>
+          <option value="IPAD">⬛ iPad</option>
+          <option value="MACBOOK">💻 Mac</option>
+          <option value="OTHER">📦 Other</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Sub-category</label>
+        <select id="rf_subcat">
+          <option value="">— Select —</option>
+        </select>
+      </div>
     </div>
     <div class="form-row">
       <label>Model Name *</label>
