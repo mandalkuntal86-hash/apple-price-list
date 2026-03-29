@@ -1126,6 +1126,155 @@
 
   /* Admin badge on cards when logged in */
   body.admin-mode .card { border-color: rgba(249,115,22,0.2); }
+
+  /* ── RESALE TAB ── */
+  .tab-resale.active {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border-color: #7c3aed;
+    color: #fff;
+  }
+  .tab-resale:not(.active) { border-color: rgba(124,58,237,0.4); color: #a855f7; }
+  .tab-resale:not(.active):hover { border-color: #a855f7; color: #a855f7; background: rgba(124,58,237,0.07); }
+
+  /* Resale card */
+  .resale-card {
+    background: var(--surface);
+    border: 1px solid rgba(124,58,237,0.25);
+    border-radius: var(--radius);
+    padding: 18px 18px 14px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s;
+    touch-action: pan-y;
+    user-select: none;
+  }
+  .resale-card:hover { border-color: rgba(124,58,237,0.5); transform: translateY(-1px); box-shadow: 0 6px 24px rgba(124,58,237,0.12); }
+  .resale-card-inner { transition: transform 0.3s cubic-bezier(.4,0,.2,1); }
+  .resale-card.swiping .resale-card-inner { transition: none; }
+  .resale-card.swipe-out .resale-card-inner { transform: translateX(-100%) !important; opacity: 0; }
+
+  /* Swipe delete reveal layer */
+  .resale-delete-layer {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, #FF453A, #FF6B6B);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 24px;
+    gap: 10px;
+    border-radius: var(--radius);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .resale-card.swipe-show-del .resale-delete-layer { opacity: 1; }
+
+  .resale-model {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+  .resale-meta {
+    font-size: 11.5px;
+    color: var(--text3);
+    margin-bottom: 12px;
+  }
+  .resale-divider { height: 1px; background: rgba(124,58,237,0.15); margin: 12px 0; }
+  .resale-price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  .resale-price-label { font-size: 12px; color: var(--text3); }
+  .resale-price-val {
+    font-size: 20px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .resale-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(124,58,237,0.1);
+    border: 1px solid rgba(124,58,237,0.25);
+    color: #a855f7;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    position: absolute;
+    top: 14px;
+    right: 14px;
+  }
+  .resale-condition {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-top: 4px;
+  }
+  .cond-new { background: rgba(48,209,88,0.12); color: #30D158; border: 1px solid rgba(48,209,88,0.3); }
+  .cond-good { background: rgba(10,132,255,0.12); color: #0A84FF; border: 1px solid rgba(10,132,255,0.3); }
+  .cond-fair { background: rgba(255,214,10,0.12); color: #FFD60A; border: 1px solid rgba(255,214,10,0.3); }
+  .cond-poor { background: rgba(255,69,58,0.12); color: #FF453A; border: 1px solid rgba(255,69,58,0.3); }
+
+  .resale-swipe-hint {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text3);
+    padding: 8px 0 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  /* Resale FAB */
+  .resale-fab {
+    background: linear-gradient(135deg, #7c3aed, #a855f7) !important;
+    box-shadow: 0 4px 20px rgba(124,58,237,0.45) !important;
+  }
+  .resale-fab:hover { background: linear-gradient(135deg, #6d28d9, #9333ea) !important; box-shadow: 0 6px 28px rgba(124,58,237,0.6) !important; }
+
+  /* Resale modal accent */
+  .resale-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #a855f7;
+    margin: 20px 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(124,58,237,0.2);
+  }
+
+  /* Empty resale */
+  .resale-empty {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text3);
+    grid-column: 1/-1;
+  }
+  .resale-empty-icon { font-size: 52px; margin-bottom: 12px; opacity: 0.4; }
+  .resale-empty h3 { font-size: 18px; color: var(--text2); margin-bottom: 8px; }
+  .resale-empty p { font-size: 13px; line-height: 1.6; max-width: 280px; margin: 0 auto; }
+
+  @media (max-width: 640px) {
+    .resale-fab { bottom: 80px !important; }
+  }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.min.js"></script>
@@ -1541,6 +1690,13 @@ const categoryMeta = {
   MACBOOK:{ label: 'Mac',    icon: '💻', hasEMI: false },
 };
 
+// ── RESALE DATA (separate, independent) ──────────────────────────────
+let resaleData = JSON.parse(localStorage.getItem('_resaleData') || '[]');
+function saveResale() {
+  localStorage.setItem('_resaleData', JSON.stringify(resaleData));
+}
+let isResaleTab = false;
+
 function getSubcats(cat) {
   const items = data[cat];
   if (!items) return [];
@@ -1637,6 +1793,265 @@ function setCategory(cat) {
   renderStockBar();
 }
 
+function switchToNormal(cat) {
+  isResaleTab = false;
+  currentCategory = cat;
+  currentSubfilter = 'all';
+  filterStockOnly = false;
+  // Show normal UI elements
+  document.getElementById('subfilters').style.display = '';
+  document.getElementById('statsBar').style.display = '';
+  document.getElementById('filterBar').style.display = '';
+  const filterBarEl = document.getElementById('filterBar');
+  filterBarEl.classList.remove('open');
+  // Show pay toggle
+  document.querySelectorAll('.pay-toggle, .view-toggle').forEach(el => el.style.display = '');
+  // Show FAB group
+  document.querySelector('.fab-group').style.display = '';
+  // Remove resale FAB if present
+  const resFab = document.getElementById('resaleFab');
+  if (resFab) resFab.remove();
+
+  renderTabs();
+  renderSubfilters();
+  renderContent();
+  renderStockBar();
+}
+
+function switchToResale() {
+  isResaleTab = true;
+  // Hide normal UI elements that don't apply
+  document.getElementById('subfilters').style.display = 'none';
+  document.getElementById('statsBar').style.display = 'none';
+  document.getElementById('filterBar').style.display = 'none';
+  // Hide pay toggle (resale is always full swipe)
+  document.querySelectorAll('.pay-toggle').forEach(el => el.style.display = 'none');
+  // Hide view toggle
+  document.querySelectorAll('.view-toggle').forEach(el => el.style.display = 'none');
+  // Hide normal FAB group
+  document.querySelector('.fab-group').style.display = 'none';
+  // Add resale FAB if not present — only visible in admin mode
+  if (!document.getElementById('resaleFab')) {
+    const fab = document.createElement('button');
+    fab.id = 'resaleFab';
+    fab.className = 'fab resale-fab';
+    fab.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Resale Item`;
+    fab.onclick = openResaleModal;
+    fab.style.position = 'fixed';
+    fab.style.bottom = '28px';
+    fab.style.right = '28px';
+    fab.style.zIndex = '200';
+    fab.style.display = _isAdmin ? 'flex' : 'none';
+    document.body.appendChild(fab);
+  } else {
+    document.getElementById('resaleFab').style.display = _isAdmin ? 'flex' : 'none';
+  }
+
+  renderTabs();
+  renderResaleContent();
+}
+
+function renderStockBar() { renderTabs(); }
+
+// ── RESALE RENDER ──────────────────────────────────────────────────────
+function renderResaleContent() {
+  const area = document.getElementById('contentArea');
+  const stockBar = document.getElementById('stockSummaryBar');
+  if (stockBar) stockBar.innerHTML = '';
+
+  if (!resaleData.length) {
+    area.innerHTML = `<div class="resale-empty">
+      <div class="resale-empty-icon">🔄</div>
+      <h3>No Resale Items</h3>
+      <p>Add second-hand or refurbished Apple products with their resale price using the button below.</p>
+    </div>`;
+    return;
+  }
+
+  const condMap = { new:'cond-new', good:'cond-good', fair:'cond-fair', poor:'cond-poor' };
+  const condLabel = { new:'Like New', good:'Good', fair:'Fair', poor:'Poor' };
+
+  const cards = resaleData.map((item, idx) => {
+    const net = item.nlc ? (item.nlc - (item.cardDisc || 0)) : 0;
+    const diff = net ? (item.resalePrice - net) : 0;
+    const diffHtml = net ? `<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;${diff > 0 ? 'background:rgba(48,209,88,0.12);color:#30D158;border:1px solid rgba(48,209,88,0.3)' : diff < 0 ? 'background:rgba(255,69,58,0.12);color:#FF453A;border:1px solid rgba(255,69,58,0.3)' : 'color:var(--text3)'}">
+      ${diff > 0 ? '+'+fmt(diff)+' profit' : diff < 0 ? fmt(diff)+' loss' : 'Break-even'}
+    </span>` : '';
+
+    return `
+    <div class="resale-card" id="rcard-${idx}" data-idx="${idx}">
+      <div class="resale-delete-layer">🗑 Delete</div>
+      <div class="resale-card-inner">
+        <span class="resale-badge">🔄 RESALE</span>
+        <div class="resale-model">${item.model}</div>
+        ${item.note ? `<div class="resale-meta">${item.note}</div>` : ''}
+        <span class="resale-condition ${condMap[item.condition] || 'cond-good'}">${condLabel[item.condition] || 'Good'}</span>
+        <div class="resale-divider"></div>
+        ${item.mrp ? `<div class="resale-price-row"><span class="resale-price-label">MRP</span><span style="font-size:13px;color:var(--text2);font-weight:400;">${fmt(item.mrp)}</span></div>` : ''}
+        ${item.nlc ? `<div class="resale-price-row"><span class="resale-price-label">Dealer / NLC</span><span style="font-size:13px;font-weight:600;color:var(--text)">${fmt(item.nlc)}</span></div>` : ''}
+        ${item.cardDisc ? `<div class="resale-price-row"><span class="resale-price-label">Card Discount</span><span style="font-size:13px;font-weight:600;color:var(--gold)">− ${fmt(item.cardDisc)}</span></div>` : ''}
+        ${net ? `<div class="resale-price-row" style="margin-top:6px"><span class="resale-price-label">Net Landing</span><span style="font-size:14px;font-weight:700;color:var(--accent2)">${fmt(net)}</span></div>` : ''}
+        <div class="resale-price-row" style="margin-top:${net ? 8 : 0}px">
+          <span class="resale-price-label" style="font-size:13px;color:var(--text)">Resale Price</span>
+          <span class="resale-price-val">${fmt(item.resalePrice)}</span>
+        </div>
+        ${diffHtml ? `<div style="display:flex;justify-content:flex-end;margin-top:6px">${diffHtml}</div>` : ''}
+        <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+          ${_isAdmin ? `<button onclick="openResaleModal(${idx})" style="flex:1;padding:7px 0;border-radius:9px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;border:1px solid rgba(124,58,237,0.25);background:rgba(124,58,237,0.12);color:#a855f7">✏️ Edit</button>
+          <span style="font-size:10px;color:var(--text3);text-align:right;flex:1">← Swipe to delete</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  area.innerHTML = `
+    <div style="font-size:13px;color:var(--text3);margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+      <span style="color:#a855f7;font-weight:600;">${resaleData.length} resale item${resaleData.length > 1 ? 's' : ''}</span>
+      <span style="color:var(--border)">|</span>
+      <span>Full Payment Only</span>
+    </div>
+    <div class="grid">${cards}</div>
+  `;
+
+  // Attach swipe listeners
+  resaleData.forEach((_, idx) => attachSwipe(idx));
+}
+
+function attachSwipe(idx) {
+  const card = document.getElementById('rcard-' + idx);
+  if (!card) return;
+  const inner = card.querySelector('.resale-card-inner');
+  let startX = 0, currentX = 0, isDragging = false;
+  const THRESHOLD = 80;
+
+  function onStart(e) {
+    startX = e.touches ? e.touches[0].clientX : e.clientX;
+    currentX = 0;
+    isDragging = true;
+    card.classList.add('swiping');
+  }
+  function onMove(e) {
+    if (!isDragging) return;
+    const x = (e.touches ? e.touches[0].clientX : e.clientX) - startX;
+    if (x > 0) { inner.style.transform = ''; return; } // no right swipe
+    currentX = x;
+    inner.style.transform = `translateX(${x}px)`;
+    inner.style.opacity = Math.max(0.4, 1 + x / 200);
+    card.classList.toggle('swipe-show-del', x < -30);
+  }
+  function onEnd() {
+    if (!isDragging) return;
+    isDragging = false;
+    card.classList.remove('swiping');
+    if (currentX < -THRESHOLD && _isAdmin) {
+      // Admin confirmed delete via swipe
+      card.classList.add('swipe-out');
+      setTimeout(() => deleteResaleItem(idx), 350);
+    } else {
+      if (currentX < -THRESHOLD && !_isAdmin) showToast('🔒 Admin login required');
+      inner.style.transform = '';
+      inner.style.opacity = '';
+      card.classList.remove('swipe-show-del');
+    }
+  }
+
+  card.addEventListener('touchstart', onStart, { passive: true });
+  card.addEventListener('touchmove', onMove, { passive: true });
+  card.addEventListener('touchend', onEnd);
+  card.addEventListener('mousedown', onStart);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onEnd);
+}
+
+function deleteResaleItem(idx) {
+  if (!_isAdmin) { showToast('🔒 Admin login required'); return; }
+  const item = resaleData[idx];
+  resaleData.splice(idx, 1);
+  saveResale();
+  renderTabs();
+  renderResaleContent();
+  showToast('🗑 Deleted: ' + item.model);
+}
+
+// ── RESALE MODAL ───────────────────────────────────────────────────────
+function openResaleModal(editIdx) {
+  if (!_isAdmin) { showToast('🔒 Admin login required'); return; }
+  document.getElementById('resaleModalOverlay').classList.add('open');
+  document.getElementById('rf_model').value = '';
+  document.getElementById('rf_price').value = '';
+  document.getElementById('rf_mrp').value = '';
+  document.getElementById('rf_nlc').value = '';
+  document.getElementById('rf_cardDisc').value = '';
+  document.getElementById('rf_note').value = '';
+  document.getElementById('rf_condition').value = 'good';
+  document.getElementById('rf_error').style.display = 'none';
+  document.getElementById('rf_net_preview').style.display = 'none';
+  document.getElementById('resaleModalOverlay').dataset.editIdx = (editIdx !== undefined) ? editIdx : '';
+  const isEdit = editIdx !== undefined;
+  document.querySelector('#resaleModalOverlay .modal-title').textContent = isEdit ? '✏️ Edit Resale Item' : '🔄 Add Resale Item';
+  document.querySelector('#resaleModalOverlay .btn-submit').textContent = isEdit ? 'Save Changes' : 'Add Resale Item';
+  if (isEdit) {
+    const item = resaleData[editIdx];
+    document.getElementById('rf_model').value = item.model || '';
+    document.getElementById('rf_price').value = item.resalePrice || '';
+    document.getElementById('rf_mrp').value = item.mrp || '';
+    document.getElementById('rf_nlc').value = item.nlc || '';
+    document.getElementById('rf_cardDisc').value = item.cardDisc || '';
+    document.getElementById('rf_note').value = item.note || '';
+    document.getElementById('rf_condition').value = item.condition || 'good';
+    calcResaleNet();
+  }
+  setTimeout(() => document.getElementById('rf_model').focus(), 100);
+}
+function closeResaleModal() {
+  document.getElementById('resaleModalOverlay').classList.remove('open');
+}
+function calcResaleNet() {
+  const nlc = parseInt(document.getElementById('rf_nlc').value) || 0;
+  const disc = parseInt(document.getElementById('rf_cardDisc').value) || 0;
+  const resale = parseInt(document.getElementById('rf_price').value) || 0;
+  const preview = document.getElementById('rf_net_preview');
+  if (!nlc && !resale) { preview.style.display = 'none'; return; }
+  preview.style.display = 'block';
+  const net = nlc - disc;
+  const diff = resale - net;
+  document.getElementById('rf_net_val').textContent = nlc ? fmt(net) : '—';
+  const diffEl = document.getElementById('rf_diff_val');
+  if (!nlc || !resale) { diffEl.textContent = '—'; diffEl.style.color = 'var(--text3)'; }
+  else if (diff > 0) { diffEl.textContent = '+' + fmt(diff) + ' profit'; diffEl.style.color = '#30D158'; }
+  else if (diff < 0) { diffEl.textContent = fmt(diff) + ' loss'; diffEl.style.color = '#FF453A'; }
+  else { diffEl.textContent = 'Break-even'; diffEl.style.color = 'var(--text3)'; }
+}
+
+function submitResaleProduct() {
+  const model     = document.getElementById('rf_model').value.trim();
+  const price     = parseInt(document.getElementById('rf_price').value) || 0;
+  const mrp       = parseInt(document.getElementById('rf_mrp').value) || 0;
+  const nlc       = parseInt(document.getElementById('rf_nlc').value) || 0;
+  const cardDisc  = parseInt(document.getElementById('rf_cardDisc').value) || 0;
+  const note      = document.getElementById('rf_note').value.trim();
+  const condition = document.getElementById('rf_condition').value;
+  const errEl     = document.getElementById('rf_error');
+
+  if (!model) { errEl.textContent = 'Model name is required.'; errEl.style.display = 'block'; return; }
+  if (!price) { errEl.textContent = 'Resale price is required.'; errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+
+  const newItem = { model, resalePrice: price, mrp, nlc, cardDisc, note, condition, addedAt: Date.now() };
+  const editIdx = document.getElementById('resaleModalOverlay').dataset.editIdx;
+  if (editIdx !== '') {
+    resaleData[parseInt(editIdx)] = { ...resaleData[parseInt(editIdx)], ...newItem };
+    showToast('✅ Resale item updated!');
+  } else {
+    resaleData.unshift(newItem);
+    showToast('✅ Resale item added!');
+  }
+  saveResale();
+  closeResaleModal();
+  renderTabs();
+  renderResaleContent();
+}
+
 function setSubfilter(sf) {
   currentSubfilter = sf;
   renderSubfilters();
@@ -1662,17 +2077,24 @@ function filterByStock(cat) {
 
 function renderTabs() {
   const el = document.getElementById('tabs');
-  el.innerHTML = Object.entries(categoryMeta).map(([k, v]) => {
+  const normalTabs = Object.entries(categoryMeta).map(([k, v]) => {
     const count = data[k].length;
-    const active = k === currentCategory;
-    return `<button class="tab ${active ? 'active' : ''}" onclick="setCategory('${k}')">
+    const active = !isResaleTab && k === currentCategory;
+    return `<button class="tab ${active ? 'active' : ''}" onclick="switchToNormal('${k}')">
       ${v.icon} ${v.label} <span class="tab-count">${count}</span>
     </button>`;
   }).join('');
 
+  const resaleActive = isResaleTab;
+  const resaleTab = `<button class="tab tab-resale ${resaleActive ? 'active' : ''}" onclick="switchToResale()">
+    🔄 Resale <span class="tab-count">${resaleData.length}</span>
+  </button>`;
+
+  el.innerHTML = normalTabs + resaleTab;
+
   // Stock summary bar
   const stockBar = document.getElementById('stockSummaryBar');
-  if (stockBar) {
+  if (stockBar && !isResaleTab) {
     stockBar.innerHTML = Object.entries(categoryMeta).map(([k, v]) => {
       const qty = getTotalStock(k);
       const active = currentCategory === k && filterStockOnly;
@@ -1681,6 +2103,8 @@ function renderTabs() {
         <span class="stock-summary-qty ${qty > 0 ? 'stock-has' : ''}">${qty} units</span>
       </div>`;
     }).join('');
+  } else if (stockBar && isResaleTab) {
+    stockBar.innerHTML = '';
   }
 }
 
@@ -2537,6 +2961,11 @@ function _setAdminMode(on, persist) {
     if (lbl) lbl.textContent = 'Admin';
     if (persist) { try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch(e) {} }
   }
+  // Refresh resale FAB visibility
+  const resFab = document.getElementById('resaleFab');
+  if (resFab) resFab.style.display = on ? 'flex' : 'none';
+  // Re-render resale cards if resale tab is active (to show/hide edit button)
+  if (isResaleTab) renderResaleContent();
 }
 
 // Guard: intercept edit/delete/add if not admin
@@ -2563,6 +2992,65 @@ document.addEventListener('click', function(e) {
 });
 
 </script>
+
+<!-- Resale Modal -->
+<div class="modal-overlay" id="resaleModalOverlay" onclick="if(event.target===this)closeResaleModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🔄 Add Resale Item</div>
+      <button class="modal-close" onclick="closeResaleModal()">&#x2715;</button>
+    </div>
+    <div class="form-row">
+      <label>Model Name *</label>
+      <input type="text" id="rf_model" placeholder="e.g. iPhone 14 Pro 256GB Space Black" />
+    </div>
+    <div class="form-row">
+      <label>Condition</label>
+      <select id="rf_condition">
+        <option value="new">Like New</option>
+        <option value="good" selected>Good</option>
+        <option value="fair">Fair</option>
+        <option value="poor">Poor</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Note / Description</label>
+      <input type="text" id="rf_note" placeholder="e.g. With box, 11 months warranty remaining" />
+    </div>
+    <div class="resale-section-label">Pricing</div>
+    <div class="form-grid-2">
+      <div class="form-row">
+        <label>MRP (&#8377;)</label>
+        <input type="number" id="rf_mrp" placeholder="e.g. 119900" oninput="calcResaleNet()" />
+      </div>
+      <div class="form-row">
+        <label>Dealer / NLC Price (&#8377;)</label>
+        <input type="number" id="rf_nlc" placeholder="e.g. 108000" oninput="calcResaleNet()" />
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Card Discount (&#8377;) <span style="font-size:11px;color:var(--text3);font-weight:400;text-transform:none">— Full Swipe</span></label>
+      <input type="number" id="rf_cardDisc" placeholder="e.g. 3000" oninput="calcResaleNet()" />
+    </div>
+    <div class="form-row">
+      <label>Resale Price (&#8377;) *</label>
+      <input type="number" id="rf_price" placeholder="e.g. 72000" oninput="calcResaleNet()" />
+    </div>
+    <!-- Net summary preview -->
+    <div id="rf_net_preview" style="display:none;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.25);border-radius:10px;padding:12px 14px;margin-top:4px;font-size:12px;color:var(--text3);">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span>NLC − Card Disc</span>
+        <span id="rf_net_val" style="font-weight:600;color:var(--text)"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <span>Resale vs Net Landing</span>
+        <span id="rf_diff_val" style="font-weight:700"></span>
+      </div>
+    </div>
+    <div id="rf_error" style="color:#FF453A;font-size:13px;margin-top:8px;display:none"></div>
+    <button class="btn-submit" style="background:linear-gradient(135deg,#7c3aed,#a855f7);margin-top:20px" onclick="submitResaleProduct()">Add Resale Item</button>
+  </div>
+</div>
 
 <!-- Admin Login Modal -->
 <div class="admin-login-modal" id="adminLoginModal">
