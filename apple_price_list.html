@@ -1982,7 +1982,6 @@ function openResaleModal(editIdx) {
   if (!_isAdmin) { showToast('🔒 Admin login required'); return; }
   document.getElementById('resaleModalOverlay').classList.add('open');
   document.getElementById('rf_category').value = 'IPHONE';
-  updateResaleSubcats();
   document.getElementById('rf_subcat').value = '';
   document.getElementById('rf_model').value = '';
   document.getElementById('rf_price').value = '';
@@ -2000,7 +1999,6 @@ function openResaleModal(editIdx) {
   if (isEdit) {
     const item = resaleData[editIdx];
     document.getElementById('rf_category').value = item.category || 'IPHONE';
-    updateResaleSubcats();
     document.getElementById('rf_subcat').value = item.subcat || '';
     document.getElementById('rf_model').value = item.model || '';
     document.getElementById('rf_price').value = item.resalePrice || '';
@@ -2022,15 +2020,6 @@ const resaleSubcats = {
   MACBOOK: ['MacBook Air M4', 'MacBook Air M3', 'MacBook Air M2', 'MacBook Pro M4', 'MacBook Pro M3', 'MacBook Pro M2', 'Mac mini', 'Mac Studio', 'iMac', 'Other'],
   OTHER:   ['Apple Watch', 'AirPods', 'Apple TV', 'HomePod', 'Accessories', 'Other'],
 };
-
-function updateResaleSubcats() {
-  const cat = document.getElementById('rf_category').value;
-  const sel = document.getElementById('rf_subcat');
-  const prev = sel.value;
-  const opts = resaleSubcats[cat] || [];
-  sel.innerHTML = '<option value="" style="background:#1a1a1a;color:#6e6e73;">— Select —</option>' +
-    opts.map(s => `<option value="${s}" style="background:#1a1a1a;color:#f5f5f7;" ${s === prev ? 'selected' : ''}>${s}</option>`).join('');
-}
 
 function calcResaleNet() {
   const nlc = parseInt(document.getElementById('rf_nlc').value) || 0;
@@ -3031,7 +3020,7 @@ document.addEventListener('click', function(e) {
     <div class="form-grid-2">
       <div class="form-row">
         <label>Category *</label>
-        <select id="rf_category" onchange="updateResaleSubcats()" style="background:#1a1a1a;color:#f5f5f7;border-color:#3a3a3a;">
+        <select id="rf_category" style="background:#1a1a1a;color:#f5f5f7;border-color:#3a3a3a;">
           <option value="IPHONE" style="background:#1a1a1a;color:#f5f5f7;">📱 iPhone</option>
           <option value="IPAD" style="background:#1a1a1a;color:#f5f5f7;">⬛ iPad</option>
           <option value="MACBOOK" style="background:#1a1a1a;color:#f5f5f7;">💻 Mac</option>
@@ -3040,9 +3029,7 @@ document.addEventListener('click', function(e) {
       </div>
       <div class="form-row">
         <label>Sub-category</label>
-        <select id="rf_subcat" style="background:#1a1a1a;color:#f5f5f7;border-color:#3a3a3a;">
-          <option value="" style="background:#1a1a1a;color:#f5f5f7;">— Select —</option>
-        </select>
+        <input type="text" id="rf_subcat" placeholder="e.g. iPhone 16 Pro" autocomplete="off" />
       </div>
     </div>
     <div class="form-row">
