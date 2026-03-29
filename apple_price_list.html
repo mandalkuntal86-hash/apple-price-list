@@ -2028,8 +2028,8 @@ function updateResaleSubcats() {
   const sel = document.getElementById('rf_subcat');
   const prev = sel.value;
   const opts = resaleSubcats[cat] || [];
-  sel.innerHTML = '<option value="">— Select —</option>' +
-    opts.map(s => `<option value="${s}" ${s === prev ? 'selected' : ''}>${s}</option>`).join('');
+  sel.innerHTML = '<option value="" style="background:#1a1a1a;color:#6e6e73;">— Select —</option>' +
+    opts.map(s => `<option value="${s}" style="background:#1a1a1a;color:#f5f5f7;" ${s === prev ? 'selected' : ''}>${s}</option>`).join('');
 }
 
 function calcResaleNet() {
@@ -3031,17 +3031,17 @@ document.addEventListener('click', function(e) {
     <div class="form-grid-2">
       <div class="form-row">
         <label>Category *</label>
-        <select id="rf_category" onchange="updateResaleSubcats()">
-          <option value="IPHONE">📱 iPhone</option>
-          <option value="IPAD">⬛ iPad</option>
-          <option value="MACBOOK">💻 Mac</option>
-          <option value="OTHER">📦 Other</option>
+        <select id="rf_category" onchange="updateResaleSubcats()" style="background:#1a1a1a;color:#f5f5f7;border-color:#3a3a3a;">
+          <option value="IPHONE" style="background:#1a1a1a;color:#f5f5f7;">📱 iPhone</option>
+          <option value="IPAD" style="background:#1a1a1a;color:#f5f5f7;">⬛ iPad</option>
+          <option value="MACBOOK" style="background:#1a1a1a;color:#f5f5f7;">💻 Mac</option>
+          <option value="OTHER" style="background:#1a1a1a;color:#f5f5f7;">📦 Other</option>
         </select>
       </div>
       <div class="form-row">
         <label>Sub-category</label>
-        <select id="rf_subcat">
-          <option value="">— Select —</option>
+        <select id="rf_subcat" style="background:#1a1a1a;color:#f5f5f7;border-color:#3a3a3a;">
+          <option value="" style="background:#1a1a1a;color:#f5f5f7;">— Select —</option>
         </select>
       </div>
     </div>
