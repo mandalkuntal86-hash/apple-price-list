@@ -1961,6 +1961,10 @@ function renderResaleContent() {
           ${_isAdmin ? `<button onclick="openResaleModal(${idx})" style="flex:1;padding:7px 0;border-radius:9px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;border:1px solid rgba(124,58,237,0.25);background:rgba(124,58,237,0.12);color:#a855f7">✏️ Edit</button>
           <button onclick="confirmDeleteResale(${idx})" style="flex:1;padding:7px 0;border-radius:9px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;border:1px solid rgba(255,59,48,0.3);background:rgba(255,59,48,0.1);color:#ff453a">🗑 Delete</button>` : ''}
         </div>
+        <button onclick="shareResaleCard(${idx})" style="width:100%;margin-top:8px;padding:8px 0;border-radius:9px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;border:1px solid rgba(37,211,102,0.35);background:rgba(37,211,102,0.1);color:#25d166;display:flex;align-items:center;justify-content:center;gap:6px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Share on WhatsApp
+        </button>
       </div>
     </div>`;
   }).join('');
@@ -2026,6 +2030,170 @@ function attachSwipe(idx) {
   card.addEventListener('mousedown', onStart);
   window.addEventListener('mousemove', onMove);
   window.addEventListener('mouseup', onEnd);
+}
+
+async function shareResaleCard(idx) {
+  const item = resaleData[idx];
+  if (!item) return;
+
+  const W = 800, H = 480;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const c = canvas.getContext('2d');
+
+  // Background gradient
+  const bg = c.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, '#0f0f11');
+  bg.addColorStop(1, '#1a1020');
+  c.fillStyle = bg;
+  roundRect(c, 0, 0, W, H, 28);
+  c.fill();
+
+  // Purple glow top-right
+  const glow = c.createRadialGradient(W * 0.85, H * 0.15, 0, W * 0.85, H * 0.15, 220);
+  glow.addColorStop(0, 'rgba(124,58,237,0.18)');
+  glow.addColorStop(1, 'rgba(124,58,237,0)');
+  c.fillStyle = glow;
+  c.fillRect(0, 0, W, H);
+
+  // Card border
+  c.strokeStyle = 'rgba(124,58,237,0.4)';
+  c.lineWidth = 1.5;
+  roundRect(c, 1, 1, W - 2, H - 2, 27);
+  c.stroke();
+
+  // RESALE badge
+  c.fillStyle = 'rgba(124,58,237,0.2)';
+  roundRect(c, 36, 36, 110, 30, 8);
+  c.fill();
+  c.strokeStyle = 'rgba(124,58,237,0.5)';
+  c.lineWidth = 1;
+  roundRect(c, 36, 36, 110, 30, 8);
+  c.stroke();
+  c.fillStyle = '#a855f7';
+  c.font = 'bold 12px -apple-system, sans-serif';
+  c.textAlign = 'left';
+  c.fillText('🔄  RESALE', 48, 56);
+
+  // Apple logo area
+  c.fillStyle = 'rgba(255,255,255,0.06)';
+  roundRect(c, W - 80, 28, 48, 48, 12);
+  c.fill();
+  c.fillStyle = 'rgba(255,255,255,0.5)';
+  c.font = '26px -apple-system, sans-serif';
+  c.textAlign = 'center';
+  c.fillText('', W - 56, 61);
+
+  // Model name
+  c.fillStyle = '#f5f5f7';
+  c.font = 'bold 32px -apple-system, BlinkMacSystemFont, sans-serif';
+  c.textAlign = 'left';
+  const modelText = item.model || '';
+  const maxW = W - 80;
+  let fontSize = 32;
+  while (c.measureText(modelText).width > maxW && fontSize > 18) {
+    fontSize--;
+    c.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
+  }
+  c.fillText(modelText, 36, 124);
+
+  // Description
+  if (item.note) {
+    c.fillStyle = '#8e8e93';
+    c.font = '15px -apple-system, sans-serif';
+    c.fillText(item.note, 36, 152);
+  }
+
+  // Divider
+  c.strokeStyle = 'rgba(255,255,255,0.08)';
+  c.lineWidth = 1;
+  c.beginPath(); c.moveTo(36, 174); c.lineTo(W - 36, 174); c.stroke();
+
+  // MRP row
+  const fmtN = n => '₹' + Number(n).toLocaleString('en-IN');
+  c.fillStyle = '#8e8e93';
+  c.font = '17px -apple-system, sans-serif';
+  c.textAlign = 'left';
+  c.fillText('MRP', 36, 218);
+  c.fillStyle = '#aeaeb2';
+  c.font = '17px -apple-system, sans-serif';
+  c.textAlign = 'right';
+  c.fillText(item.mrp ? fmtN(item.mrp) : '—', W - 36, 218);
+
+  // Divider
+  c.strokeStyle = 'rgba(255,255,255,0.05)';
+  c.lineWidth = 1;
+  c.beginPath(); c.moveTo(36, 238); c.lineTo(W - 36, 238); c.stroke();
+
+  // Resale Price label
+  c.fillStyle = '#c9c9cf';
+  c.font = '600 18px -apple-system, sans-serif';
+  c.textAlign = 'left';
+  c.fillText('Resale Price', 36, 300);
+
+  // Resale Price value — big
+  c.fillStyle = '#a855f7';
+  c.font = 'bold 54px -apple-system, BlinkMacSystemFont, sans-serif';
+  c.textAlign = 'left';
+  c.fillText(fmtN(item.resalePrice), 36, 366);
+
+  // Subcat pill
+  if (item.subcat) {
+    c.fillStyle = 'rgba(124,58,237,0.15)';
+    const pillW = c.measureText(item.subcat).width + 40;
+    // measure with pill font first
+    c.font = 'bold 13px -apple-system, sans-serif';
+    const pw = c.measureText(item.subcat).width + 28;
+    roundRect(c, 36, H - 72, pw, 28, 8);
+    c.fill();
+    c.strokeStyle = 'rgba(124,58,237,0.3)';
+    c.lineWidth = 1;
+    roundRect(c, 36, H - 72, pw, 28, 8);
+    c.stroke();
+    c.fillStyle = '#a855f7';
+    c.textAlign = 'left';
+    c.fillText(item.subcat, 50, H - 53);
+  }
+
+  // Bottom tagline
+  c.fillStyle = 'rgba(255,255,255,0.2)';
+  c.font = '13px -apple-system, sans-serif';
+  c.textAlign = 'right';
+  c.fillText('Apple Resale', W - 36, H - 52);
+
+  // Convert to blob and share
+  canvas.toBlob(async blob => {
+    const file = new File([blob], `${item.model || 'resale'}.png`, { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: item.model, text: `${item.model}\nMRP: ${item.mrp ? fmtN(item.mrp) : 'N/A'}\nResale Price: ${fmtN(item.resalePrice)}` });
+      } catch(e) { if (e.name !== 'AbortError') fallbackDownload(canvas, item); }
+    } else {
+      fallbackDownload(canvas, item);
+    }
+  }, 'image/png');
+}
+
+function fallbackDownload(canvas, item) {
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = `${(item.model || 'resale').replace(/[^a-z0-9]/gi,'_')}.png`;
+  a.click();
+  showToast('📥 Image saved — share it on WhatsApp!');
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
 }
 
 function confirmDeleteResale(idx) {
