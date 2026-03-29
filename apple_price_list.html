@@ -2043,6 +2043,10 @@ function renderResaleContent() {
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
         ${catChips}
         <span style="margin-left:auto;font-size:12px;color:var(--text3)">${filtered.length} of ${resaleData.length} item${resaleData.length !== 1 ? 's' : ''}</span>
+        <button onclick="openBulkShareModal()" style="display:flex;align-items:center;gap:6px;padding:6px 13px;border-radius:20px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;border:1px solid rgba(37,211,102,0.4);background:rgba(37,211,102,0.1);color:#25d166;white-space:nowrap;transition:all 0.15s" title="Send multiple products via WhatsApp or Excel">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Send Multiple
+        </button>
       </div>
       ${subcatChipsHtml}
     </div>
@@ -3622,6 +3626,387 @@ document.addEventListener('click', function(e) {
     <button class="admin-login-btn" onclick="adminLogin()">Sign In</button>
   </div>
 </div>
+
+<!-- Bulk Share Modal -->
+<div id="bulkShareOverlay" onclick="if(event.target===this)closeBulkShareModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.78);backdrop-filter:blur(8px);z-index:500;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#161616;border:1px solid #2e2e2e;border-radius:20px;width:100%;max-width:600px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;animation:modalIn 0.2s ease">
+    <!-- Header -->
+    <div style="padding:20px 24px 16px;border-bottom:1px solid #222;flex-shrink:0">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:17px;font-weight:700;color:#f5f5f7">📤 Send Multiple Products</div>
+          <div style="font-size:12px;color:#8e8e93;margin-top:3px">Select items → send as WhatsApp message or download as Excel</div>
+        </div>
+        <button onclick="closeBulkShareModal()" style="background:#2c2c2e;border:1px solid #3a3a3a;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#aeaeb2;font-size:16px;flex-shrink:0">&#x2715;</button>
+      </div>
+      <!-- Filter tabs -->
+      <div id="bulkCatTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px"></div>
+    </div>
+    <!-- Select All + count -->
+    <div style="padding:10px 24px;border-bottom:1px solid #1e1e1e;flex-shrink:0;display:flex;align-items:center;gap:10px;background:#111">
+      <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:#aeaeb2;font-weight:600;user-select:none">
+        <input type="checkbox" id="bulkSelectAll" onchange="toggleBulkSelectAll(this.checked)" style="width:15px;height:15px;accent-color:#25d166;cursor:pointer">
+        Select All
+      </label>
+      <span id="bulkSelCount" style="font-size:12px;color:#636366;margin-left:auto">0 selected</span>
+    </div>
+    <!-- List -->
+    <div id="bulkItemsList" style="overflow-y:auto;flex:1;padding:8px 12px"></div>
+    <!-- Footer -->
+    <div style="padding:14px 24px;border-top:1px solid #2a2a2a;flex-shrink:0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button onclick="closeBulkShareModal()" style="padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;border:1px solid #3a3a3a;background:#2c2c2e;color:#f5f5f7">Cancel</button>
+      <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+        <!-- Excel → WhatsApp -->
+        <button onclick="bulkShareExcelWhatsApp()" style="display:flex;align-items:center;gap:6px;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer;border:none;background:linear-gradient(135deg,#1a6e35,#25d166);color:#fff" title="Share Excel file directly on WhatsApp">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12l2.5 2.5L16 9"/></svg>
+          Excel
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WhatsApp
+        </button>
+        <!-- PDF → WhatsApp -->
+        <button onclick="bulkSharePdfWhatsApp()" style="display:flex;align-items:center;gap:6px;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer;border:none;background:linear-gradient(135deg,#8c1a1a,#ff453a);color:#fff" title="Share PDF file directly on WhatsApp">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          PDF
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── BULK SHARE ─────────────────────────────────────────────────────────
+let _bulkCatFilter = 'ALL';
+const _bulkCatLabels = { ALL:'All', IPHONE:'📱 iPhone', IPAD:'⬛ iPad', MACBOOK:'💻 Mac', OTHER:'📦 Other' };
+
+function openBulkShareModal() {
+  _bulkCatFilter = _resaleCatFilter || 'ALL';
+  const el = document.getElementById('bulkShareOverlay');
+  el.style.display = 'flex';
+  renderBulkCatTabs();
+  renderBulkList();
+}
+
+function closeBulkShareModal() {
+  document.getElementById('bulkShareOverlay').style.display = 'none';
+}
+
+function renderBulkCatTabs() {
+  const presentCats = new Set(resaleData.map(i => i.category).filter(Boolean));
+  const catOrder = ['ALL','MACBOOK','IPHONE','IPAD','OTHER'];
+  const cats = catOrder.filter(c => c === 'ALL' || presentCats.has(c));
+  document.getElementById('bulkCatTabs').innerHTML = cats.map(c => `
+    <button onclick="_bulkCatFilter='${c}';renderBulkCatTabs();renderBulkList()" style="
+      padding:5px 13px;border-radius:16px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;white-space:nowrap;transition:all 0.15s;
+      ${_bulkCatFilter === c
+        ? 'background:linear-gradient(135deg,#25d166,#128c7e);color:#fff;border:1px solid transparent'
+        : 'background:rgba(37,211,102,0.08);color:#25d166;border:1px solid rgba(37,211,102,0.2)'}
+    ">${_bulkCatLabels[c] || c}</button>`).join('');
+}
+
+function renderBulkList() {
+  const filtered = resaleData.filter(item =>
+    _bulkCatFilter === 'ALL' || item.category === _bulkCatFilter
+  ).sort((a,b) => (a.resalePrice||0) - (b.resalePrice||0));
+
+  document.getElementById('bulkItemsList').innerHTML = filtered.length === 0
+    ? `<div style="text-align:center;padding:30px;color:#636366;font-size:13px">No items in this category.</div>`
+    : filtered.map((item, i) => {
+      const globalIdx = resaleData.indexOf(item);
+      const isMac = item.category === 'MACBOOK';
+      const desc = item.note || '';
+      const descLine = isMac && desc ? `<div style="font-size:11px;color:#a78bfa;margin-top:2px">${desc}</div>` : '';
+      return `
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 8px;border-bottom:1px solid #1e1e1e">
+        <input type="checkbox" id="bulk_chk_${globalIdx}" class="bulk-chk" onchange="updateBulkCount()" style="width:16px;height:16px;accent-color:#25d166;cursor:pointer;margin-top:3px;flex-shrink:0">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:#f5f5f7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.model}</div>
+          ${descLine}
+          <div style="font-size:11px;color:#8e8e93;margin-top:2px">
+            ${item.mrp ? `MRP ₹${Number(item.mrp).toLocaleString('en-IN')}` : ''}
+            ${item.mrp && item.resalePrice ? ' · ' : ''}
+            ${item.resalePrice ? `<span style="color:#25d166;font-weight:700">Resale ₹${Number(item.resalePrice).toLocaleString('en-IN')}</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+  document.getElementById('bulkSelectAll').checked = false;
+  updateBulkCount();
+}
+
+function toggleBulkSelectAll(checked) {
+  document.querySelectorAll('.bulk-chk').forEach(chk => chk.checked = checked);
+  updateBulkCount();
+}
+
+function updateBulkCount() {
+  const n = document.querySelectorAll('.bulk-chk:checked').length;
+  document.getElementById('bulkSelCount').textContent = `${n} selected`;
+  const all = document.querySelectorAll('.bulk-chk');
+  document.getElementById('bulkSelectAll').checked = all.length > 0 && n === all.length;
+}
+
+function _getSelectedBulkItems() {
+  const checked = document.querySelectorAll('.bulk-chk:checked');
+  if (!checked.length) { showToast('⚠️ Select at least one item'); return null; }
+  return Array.from(checked).map(chk => resaleData[parseInt(chk.id.replace('bulk_chk_', ''))]).filter(Boolean);
+}
+
+// ── WHATSAPP TEXT SEND (kept for internal use) ─────────────────────────
+function bulkSendWhatsApp() {
+  const items = _getSelectedBulkItems();
+  if (!items) return;
+  const fmtR = n => '₹' + Number(n).toLocaleString('en-IN');
+  const groups = {};
+  const catOrder = ['MACBOOK','IPHONE','IPAD','OTHER'];
+  const catEmoji = { MACBOOK:'💻 MacBooks', IPHONE:'📱 iPhones', IPAD:'⬛ iPads', OTHER:'📦 Others' };
+  items.forEach(item => { const c = item.category||'OTHER'; if(!groups[c])groups[c]=[]; groups[c].push(item); });
+  let msg = '🍎 *Apple Resale Price List*\n\n';
+  catOrder.forEach(cat => {
+    if (!groups[cat]) return;
+    msg += `*${catEmoji[cat]||cat}*\n━━━━━━━━━━━━━━━━\n`;
+    groups[cat].forEach(item => {
+      msg += `📌 *${item.model}*\n`;
+      if (cat === 'MACBOOK' && item.note) msg += `   📝 ${item.note}\n`;
+      if (item.mrp) msg += `   MRP: ${fmtR(item.mrp)}\n`;
+      msg += `   💰 Resale: *${fmtR(item.resalePrice)}*\n\n`;
+    });
+  });
+  msg += '_Prices subject to change._';
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+  closeBulkShareModal();
+}
+
+// ── SHARED HELPERS ──────────────────────────────────────────────────────
+function _loadScript(url, cb, errcb) {
+  const s = document.createElement('script');
+  s.src = url;
+  s.onload = cb;
+  s.onerror = errcb;
+  document.head.appendChild(s);
+}
+
+function _buildExcelBlob(items) {
+  const wb = XLSX.utils.book_new();
+  const catOrder = ['MACBOOK','IPHONE','IPAD','OTHER'];
+  const catLabel = { MACBOOK:'MacBooks', IPHONE:'iPhones', IPAD:'iPads', OTHER:'Others' };
+  const groups = {};
+  items.forEach(item => { const c = item.category||'OTHER'; if(!groups[c])groups[c]=[]; groups[c].push(item); });
+
+  catOrder.forEach(cat => {
+    if (!groups[cat]) return;
+    const rows = [];
+    if (cat === 'MACBOOK') {
+      rows.push(['Model Name','Description','MRP (₹)','Resale Price (₹)']);
+      groups[cat].forEach(i => rows.push([i.model||'', i.note||'', i.mrp?Number(i.mrp):'', i.resalePrice?Number(i.resalePrice):'']));
+    } else {
+      rows.push(['Model Name','MRP (₹)','Resale Price (₹)']);
+      groups[cat].forEach(i => rows.push([i.model||'', i.mrp?Number(i.mrp):'', i.resalePrice?Number(i.resalePrice):'']));
+    }
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = cat === 'MACBOOK' ? [{wch:45},{wch:35},{wch:14},{wch:16}] : [{wch:45},{wch:14},{wch:16}];
+    XLSX.utils.book_append_sheet(wb, ws, catLabel[cat]||cat);
+  });
+
+  if (Object.keys(groups).length > 1) {
+    const allRows = [['Category','Model Name','Description','MRP (₹)','Resale Price (₹)']];
+    catOrder.forEach(cat => { if(!groups[cat])return; groups[cat].forEach(i => allRows.push([catLabel[cat]||cat, i.model||'', i.note||'', i.mrp?Number(i.mrp):'', i.resalePrice?Number(i.resalePrice):''])); });
+    const wsAll = XLSX.utils.aoa_to_sheet(allRows);
+    wsAll['!cols'] = [{wch:12},{wch:45},{wch:35},{wch:14},{wch:16}];
+    XLSX.utils.book_append_sheet(wb, wsAll, 'All Items');
+  }
+
+  const wbout = XLSX.write(wb, { bookType:'xlsx', type:'array' });
+  return new Blob([wbout], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+
+// ── EXCEL → WHATSAPP ───────────────────────────────────────────────────
+function bulkShareExcelWhatsApp() {
+  const items = _getSelectedBulkItems();
+  if (!items) return;
+
+  const doShare = () => {
+    const date = new Date().toISOString().slice(0,10);
+    const fileName = `Apple_Resale_${date}.xlsx`;
+    const blob = _buildExcelBlob(items);
+    const file = new File([blob], fileName, { type: blob.type });
+
+    // Mobile: Web Share API can pass file directly to WhatsApp
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: 'Apple Resale Price List', text: '🍎 Apple Resale Price List' })
+        .then(() => { closeBulkShareModal(); })
+        .catch(e => { if (e.name !== 'AbortError') _excelFallback(blob, fileName); });
+    } else {
+      // Desktop fallback: download file + open WhatsApp Web
+      _excelFallback(blob, fileName);
+    }
+  };
+
+  if (typeof XLSX === 'undefined') {
+    showToast('⏳ Loading Excel library…');
+    _loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js', doShare,
+      () => showToast('⚠️ Could not load Excel library'));
+  } else {
+    doShare();
+  }
+}
+
+function _excelFallback(blob, fileName) {
+  // Download the file
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = fileName; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  // Show instruction toast then open WhatsApp
+  showToast('📥 Excel saved — attach it in WhatsApp!');
+  setTimeout(() => window.open('https://web.whatsapp.com', '_blank'), 1200);
+  closeBulkShareModal();
+}
+
+// ── PDF → WHATSAPP ─────────────────────────────────────────────────────
+function bulkSharePdfWhatsApp() {
+  const items = _getSelectedBulkItems();
+  if (!items) return;
+
+  const date = new Date().toISOString().slice(0,10);
+  const fileName = `Apple_Resale_${date}.pdf`;
+
+  // Build PDF as HTML → print to PDF blob using a hidden iframe
+  const catOrder = ['MACBOOK','IPHONE','IPAD','OTHER'];
+  const catLabel = { MACBOOK:'💻 MacBooks', IPHONE:'📱 iPhones', IPAD:'⬛ iPads', OTHER:'📦 Others' };
+  const fmtR = n => '₹' + Number(n).toLocaleString('en-IN');
+  const groups = {};
+  items.forEach(item => { const c = item.category||'OTHER'; if(!groups[c])groups[c]=[]; groups[c].push(item); });
+
+  // Build styled HTML for the PDF
+  let tablesSec = '';
+  catOrder.forEach(cat => {
+    if (!groups[cat]) return;
+    const isMac = cat === 'MACBOOK';
+    const headers = isMac
+      ? '<th>Model Name</th><th>Description</th><th>MRP</th><th>Resale Price</th>'
+      : '<th>Model Name</th><th>MRP</th><th>Resale Price</th>';
+    const rows = groups[cat].map(i => isMac
+      ? `<tr><td>${i.model||''}</td><td class="desc">${i.note||''}</td><td class="num">${i.mrp?fmtR(i.mrp):'—'}</td><td class="resale">${i.resalePrice?fmtR(i.resalePrice):'—'}</td></tr>`
+      : `<tr><td>${i.model||''}</td><td class="num">${i.mrp?fmtR(i.mrp):'—'}</td><td class="resale">${i.resalePrice?fmtR(i.resalePrice):'—'}</td></tr>`
+    ).join('');
+    tablesSec += `
+      <div class="section">
+        <h2>${catLabel[cat]||cat}</h2>
+        <table><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>
+      </div>`;
+  });
+
+  const htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px;color:#1d1d1f;padding:24px}
+    .header{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #7c3aed;padding-bottom:10px;margin-bottom:18px}
+    .header h1{font-size:18px;font-weight:700;color:#7c3aed}
+    .header .sub{font-size:10px;color:#6e6e73}
+    .section{margin-bottom:20px}
+    .section h2{font-size:13px;font-weight:700;color:#1d1d1f;margin-bottom:7px;padding:5px 8px;background:#f0f0f2;border-radius:6px}
+    table{width:100%;border-collapse:collapse}
+    thead tr{background:#7c3aed;color:#fff}
+    thead th{padding:7px 10px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.3px}
+    tbody tr:nth-child(even){background:#fafafa}
+    tbody tr{border-bottom:1px solid #e5e5ea}
+    tbody td{padding:6px 10px;vertical-align:middle}
+    .desc{color:#6e6e73;font-size:10px}
+    .num{color:#3a3a3c;font-weight:500}
+    .resale{color:#1d8348;font-weight:700}
+    .footer{margin-top:16px;font-size:9px;color:#aeaeb2;text-align:center;border-top:1px solid #e5e5ea;padding-top:8px}
+    @media print{body{padding:12px}}
+  </style></head><body>
+  <div class="header">
+    <div><h1>🍎 Apple Resale Price List</h1><div class="sub">Generated ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}</div></div>
+    <div style="font-size:22px">🔄</div>
+  </div>
+  ${tablesSec}
+  <div class="footer">Prices subject to change. Contact us for availability.</div>
+  </body></html>`;
+
+  // Use window.print via a hidden iframe to get PDF, OR use Blob URL + share
+  const blob = new Blob([htmlContent], { type: 'text/html' });
+
+  // Try Web Share API with PDF-like approach on mobile
+  // On mobile browsers, we can share the HTML file; on desktop we open print dialog
+  const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+
+  if (isMobile && navigator.canShare) {
+    // On mobile: share HTML file (user can open in browser and print to PDF, or some apps accept HTML)
+    // Better: generate PDF via canvas/print and share
+    _sharePdfMobile(htmlContent, fileName);
+  } else {
+    _printToPdfDesktop(htmlContent, fileName);
+  }
+}
+
+function _sharePdfMobile(htmlContent, fileName) {
+  // Open the HTML in a new tab so user can use browser's Share → WhatsApp
+  const blob = new Blob([htmlContent], { type:'text/html' });
+  const url = URL.createObjectURL(blob);
+
+  // Try native share first
+  const htmlFile = new File([blob], fileName.replace('.pdf','.html'), { type:'text/html' });
+  if (navigator.canShare && navigator.canShare({ files: [htmlFile] })) {
+    navigator.share({ files: [htmlFile], title: 'Apple Resale Price List' })
+      .then(() => closeBulkShareModal())
+      .catch(() => _openPrintWindow(htmlContent));
+  } else {
+    _openPrintWindow(htmlContent);
+  }
+}
+
+function _printToPdfDesktop(htmlContent, fileName) {
+  // Open a new window with the price list and trigger print dialog (Save as PDF)
+  const win = window.open('', '_blank', 'width=900,height=700');
+  if (!win) { showToast('⚠️ Please allow popups to generate PDF'); return; }
+  win.document.write(htmlContent);
+  win.document.close();
+  win.onload = () => {
+    setTimeout(() => {
+      win.print();
+      // After print dialog, open WhatsApp Web
+      setTimeout(() => {
+        showToast('📥 Save PDF → then attach in WhatsApp!');
+        setTimeout(() => window.open('https://web.whatsapp.com', '_blank'), 1500);
+      }, 1000);
+    }, 400);
+  };
+  closeBulkShareModal();
+}
+
+function _openPrintWindow(htmlContent) {
+  const win = window.open('', '_blank');
+  if (!win) return;
+  win.document.write(htmlContent);
+  win.document.close();
+  win.onload = () => setTimeout(() => win.print(), 300);
+  closeBulkShareModal();
+}
+
+// ── EXCEL DOWNLOAD (legacy, kept) ──────────────────────────────────────
+function bulkDownloadExcel() {
+  const items = _getSelectedBulkItems();
+  if (!items) return;
+  const doIt = () => {
+    const blob = _buildExcelBlob(items);
+    const date = new Date().toISOString().slice(0,10);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `Apple_Resale_${date}.xlsx`; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    showToast('✅ Excel downloaded!');
+    closeBulkShareModal();
+  };
+  if (typeof XLSX === 'undefined') {
+    _loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js', doIt,
+      () => showToast('⚠️ Could not load Excel library'));
+  } else { doIt(); }
+}
+</script>
 
 <!-- Firebase Settings Modal -->
 <div class="modal-overlay" id="fbSettingsModal" onclick="if(event.target===this)this.classList.remove('open')">
