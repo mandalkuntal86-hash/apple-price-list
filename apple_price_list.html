@@ -1697,6 +1697,7 @@ const categoryMeta = {
 let resaleData = JSON.parse(localStorage.getItem('_resaleData') || '[]');
 function saveResale() {
   localStorage.setItem('_resaleData', JSON.stringify(resaleData));
+  fbSave();
 }
 let isResaleTab = false;
 
@@ -2715,6 +2716,7 @@ const LS_KEY = 'applePriceListData';
 function saveToLocal() {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify(data));
+    localStorage.setItem('_resaleData', JSON.stringify(resaleData));
   } catch(e) { console.warn('LocalStorage save failed:', e); }
 }
 
@@ -2725,9 +2727,18 @@ function loadFromLocal() {
       const parsed = JSON.parse(saved);
       if (parsed && parsed.IPHONE && parsed.IPHONE.length) {
         Object.assign(data, parsed);
-        return true;
       }
     }
+    // Load resale data
+    const savedResale = localStorage.getItem('_resaleData');
+    if (savedResale) {
+      const parsedResale = JSON.parse(savedResale);
+      if (Array.isArray(parsedResale)) {
+        resaleData.length = 0;
+        parsedResale.forEach(i => resaleData.push(i));
+      }
+    }
+    return true;
   } catch(e) { console.warn('LocalStorage load failed:', e); }
   return false;
 }
@@ -2768,6 +2779,12 @@ function fbNorm(d) {
       item.stock = (item.stock && item.stock>0) ? parseInt(item.stock) : null;
     });
   });
+  // Load resale data from Firebase doc
+  if (Array.isArray(d._resale)) {
+    resaleData.length = 0;
+    d._resale.forEach(i => resaleData.push(i));
+    localStorage.setItem('_resaleData', JSON.stringify(resaleData));
+  }
   return d;
 }
 
@@ -2778,6 +2795,7 @@ async function fbSave() {
     fbDot('saving');
     const clean = JSON.parse(JSON.stringify(data,(k,v)=>v===undefined?null:v));
     clean._by = _fbDev; clean._at = Date.now();
+    clean._resale = JSON.parse(JSON.stringify(resaleData,(k,v)=>v===undefined?null:v));
     await _fbDb.collection('pricelist').doc('main').set(clean);
     fbDot('saved');
     saveToLocal();
@@ -2833,7 +2851,9 @@ async function fbInit() {
         if (d&&d.IPHONE) {
           const d2={...d}; delete d2._by; delete d2._at;
           fbNorm(d2); Object.assign(data,d2); saveToLocal();
-          renderTabs(); renderSubfilters(); renderContent();
+          renderTabs();
+          if (isResaleTab) renderResaleContent();
+          else { renderSubfilters(); renderContent(); }
           fbDot('connected');
         }
       }
@@ -2845,7 +2865,9 @@ async function fbInit() {
       if (!d||!d.IPHONE||d._by===_fbDev) return;
       const c2={...d}; delete c2._by; delete c2._at;
       fbNorm(c2); Object.assign(data,c2); saveToLocal();
-      renderTabs(); renderSubfilters(); renderContent();
+      renderTabs();
+      if (isResaleTab) renderResaleContent();
+      else { renderSubfilters(); renderContent(); }
       fbDot('connected');
       showToast('📲 Synced from another device');
     }, err=>{ fbDot('error'); });
