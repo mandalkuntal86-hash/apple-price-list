@@ -1694,10 +1694,16 @@ const categoryMeta = {
 };
 
 // ── RESALE DATA (separate, independent) ──────────────────────────────
-let resaleData = JSON.parse(localStorage.getItem('_resaleData') || '[]');
+let resaleData = [];
 function saveResale() {
-  localStorage.setItem('_resaleData', JSON.stringify(resaleData));
-  fbSave();
+  try { localStorage.setItem('_resaleData', JSON.stringify(resaleData)); } catch(e){}
+  if (_fbDb) fbSave();
+}
+function loadResaleFromLocal() {
+  try {
+    const s = localStorage.getItem('_resaleData');
+    if (s) { const p = JSON.parse(s); if (Array.isArray(p)) resaleData = p; }
+  } catch(e){}
 }
 let isResaleTab = false;
 
@@ -2044,7 +2050,7 @@ function calcResaleNet() {
 
 function submitResaleProduct() {
   const category  = document.getElementById('rf_category').value;
-  const subcat    = document.getElementById('rf_subcat').value;
+  const subcat    = document.getElementById('rf_subcat').value.trim();
   const model     = document.getElementById('rf_model').value.trim();
   const price     = parseInt(document.getElementById('rf_price').value) || 0;
   const mrp       = parseInt(document.getElementById('rf_mrp').value) || 0;
@@ -2069,20 +2075,27 @@ function submitResaleProduct() {
     resaleData.unshift(newItem);
     showToast('✅ Resale item added!');
   }
-  saveResale();
+
+  // Save first
+  try { localStorage.setItem('_resaleData', JSON.stringify(resaleData)); } catch(e){}
+  if (_fbDb) fbSave();
+
+  // Close modal
   closeResaleModal();
-  // Always switch to resale tab after add/edit so item is visible
+
+  // Force switch to resale tab view
   isResaleTab = true;
-  renderTabs();
-  // Restore resale UI state
   document.getElementById('subfilters').style.display = 'none';
   document.getElementById('statsBar').style.display = 'none';
-  document.getElementById('filterBar').style.display = 'none';
+  const filterBarEl = document.getElementById('filterBar');
+  if (filterBarEl) { filterBarEl.style.display = 'none'; filterBarEl.classList.remove('open'); }
   document.querySelectorAll('.pay-toggle').forEach(el => el.style.display = 'none');
   document.querySelectorAll('.view-toggle').forEach(el => el.style.display = 'none');
   document.querySelector('.fab-group').style.display = 'none';
   const resFab = document.getElementById('resaleFab');
   if (resFab) resFab.style.display = _isAdmin ? 'flex' : 'none';
+
+  renderTabs();
   renderResaleContent();
 }
 
@@ -2949,7 +2962,8 @@ window.addEventListener('online',()=>{ showToast('🌐 Online — syncing...'); 
 window.addEventListener('offline',()=>{ fbDot('error'); showToast('📵 Offline'); });
 
 window.addEventListener('load', () => {
-  loadFromLocal();  // Show local data instantly
+  loadFromLocal();       // Show local data instantly
+  loadResaleFromLocal(); // Load resale data
   initRender();
   fbInit().then(()=>fbStartHb()).catch(e=>console.error(e)); // Firebase in background
   adminCheckSession();
