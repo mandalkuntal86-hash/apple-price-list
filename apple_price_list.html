@@ -2058,9 +2058,11 @@ function submitResaleProduct() {
   errEl.style.display = 'none';
 
   const newItem = { category, subcat, model, resalePrice: price, mrp, nlc, cardDisc, note, condition, addedAt: Date.now() };
-  const editIdx = document.getElementById('resaleModalOverlay').dataset.editIdx;
-  if (editIdx !== '') {
-    resaleData[parseInt(editIdx)] = { ...resaleData[parseInt(editIdx)], ...newItem };
+  const editIdxRaw = document.getElementById('resaleModalOverlay').dataset.editIdx;
+  const isEdit = editIdxRaw !== '' && editIdxRaw !== undefined && editIdxRaw !== null;
+
+  if (isEdit) {
+    resaleData[parseInt(editIdxRaw)] = { ...resaleData[parseInt(editIdxRaw)], ...newItem };
     showToast('✅ Resale item updated!');
   } else {
     resaleData.unshift(newItem);
@@ -2068,7 +2070,18 @@ function submitResaleProduct() {
   }
   saveResale();
   closeResaleModal();
+  // Always switch to resale tab after add/edit so item is visible
+  isResaleTab = true;
   renderTabs();
+  // Restore resale UI state
+  document.getElementById('subfilters').style.display = 'none';
+  document.getElementById('statsBar').style.display = 'none';
+  document.getElementById('filterBar').style.display = 'none';
+  document.querySelectorAll('.pay-toggle').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.view-toggle').forEach(el => el.style.display = 'none');
+  document.querySelector('.fab-group').style.display = 'none';
+  const resFab = document.getElementById('resaleFab');
+  if (resFab) resFab.style.display = _isAdmin ? 'flex' : 'none';
   renderResaleContent();
 }
 
