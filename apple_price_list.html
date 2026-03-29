@@ -2041,51 +2041,56 @@ async function shareResaleCard(idx) {
   canvas.width = W; canvas.height = H;
   const c = canvas.getContext('2d');
 
-  // Background gradient
-  const bg = c.createLinearGradient(0, 0, W, H);
-  bg.addColorStop(0, '#0f0f11');
-  bg.addColorStop(1, '#1a1020');
-  c.fillStyle = bg;
+  // Background — clean white
+  c.fillStyle = '#ffffff';
   roundRect(c, 0, 0, W, H, 28);
   c.fill();
 
-  // Purple glow top-right
-  const glow = c.createRadialGradient(W * 0.85, H * 0.15, 0, W * 0.85, H * 0.15, 220);
-  glow.addColorStop(0, 'rgba(124,58,237,0.18)');
-  glow.addColorStop(1, 'rgba(124,58,237,0)');
+  // Subtle purple top strip
+  const topStrip = c.createLinearGradient(0, 0, W, 0);
+  topStrip.addColorStop(0, '#7c3aed');
+  topStrip.addColorStop(1, '#a855f7');
+  c.fillStyle = topStrip;
+  roundRect(c, 0, 0, W, 8, 4);
+  c.fill();
+
+  // Light purple glow top-right
+  const glow = c.createRadialGradient(W * 0.88, 0, 0, W * 0.88, 0, 280);
+  glow.addColorStop(0, 'rgba(168,85,247,0.08)');
+  glow.addColorStop(1, 'rgba(168,85,247,0)');
   c.fillStyle = glow;
   c.fillRect(0, 0, W, H);
 
   // Card border
-  c.strokeStyle = 'rgba(124,58,237,0.4)';
+  c.strokeStyle = 'rgba(124,58,237,0.15)';
   c.lineWidth = 1.5;
   roundRect(c, 1, 1, W - 2, H - 2, 27);
   c.stroke();
 
   // RESALE badge
-  c.fillStyle = 'rgba(124,58,237,0.2)';
-  roundRect(c, 36, 36, 110, 30, 8);
+  c.fillStyle = 'rgba(124,58,237,0.1)';
+  roundRect(c, 36, 36, 114, 30, 8);
   c.fill();
-  c.strokeStyle = 'rgba(124,58,237,0.5)';
+  c.strokeStyle = 'rgba(124,58,237,0.3)';
   c.lineWidth = 1;
-  roundRect(c, 36, 36, 110, 30, 8);
+  roundRect(c, 36, 36, 114, 30, 8);
   c.stroke();
-  c.fillStyle = '#a855f7';
+  c.fillStyle = '#7c3aed';
   c.font = 'bold 12px -apple-system, sans-serif';
   c.textAlign = 'left';
   c.fillText('🔄  RESALE', 48, 56);
 
   // Apple logo area
-  c.fillStyle = 'rgba(255,255,255,0.06)';
+  c.fillStyle = 'rgba(124,58,237,0.07)';
   roundRect(c, W - 80, 28, 48, 48, 12);
   c.fill();
-  c.fillStyle = 'rgba(255,255,255,0.5)';
+  c.fillStyle = '#7c3aed';
   c.font = '26px -apple-system, sans-serif';
   c.textAlign = 'center';
   c.fillText('', W - 56, 61);
 
   // Model name
-  c.fillStyle = '#f5f5f7';
+  c.fillStyle = '#1d1d1f';
   c.font = 'bold 32px -apple-system, BlinkMacSystemFont, sans-serif';
   c.textAlign = 'left';
   const modelText = item.model || '';
@@ -2097,66 +2102,64 @@ async function shareResaleCard(idx) {
   }
   c.fillText(modelText, 36, 124);
 
-  // Description
+  // Description / note
   if (item.note) {
-    c.fillStyle = '#8e8e93';
+    c.fillStyle = '#6e6e73';
     c.font = '15px -apple-system, sans-serif';
     c.fillText(item.note, 36, 152);
   }
 
   // Divider
-  c.strokeStyle = 'rgba(255,255,255,0.08)';
+  c.strokeStyle = 'rgba(0,0,0,0.07)';
   c.lineWidth = 1;
   c.beginPath(); c.moveTo(36, 174); c.lineTo(W - 36, 174); c.stroke();
 
   // MRP row
   const fmtN = n => '₹' + Number(n).toLocaleString('en-IN');
-  c.fillStyle = '#8e8e93';
+  c.fillStyle = '#6e6e73';
   c.font = '17px -apple-system, sans-serif';
   c.textAlign = 'left';
   c.fillText('MRP', 36, 218);
-  c.fillStyle = '#aeaeb2';
+  c.fillStyle = '#3a3a3c';
   c.font = '17px -apple-system, sans-serif';
   c.textAlign = 'right';
   c.fillText(item.mrp ? fmtN(item.mrp) : '—', W - 36, 218);
 
   // Divider
-  c.strokeStyle = 'rgba(255,255,255,0.05)';
+  c.strokeStyle = 'rgba(0,0,0,0.05)';
   c.lineWidth = 1;
   c.beginPath(); c.moveTo(36, 238); c.lineTo(W - 36, 238); c.stroke();
 
   // Resale Price label
-  c.fillStyle = '#c9c9cf';
+  c.fillStyle = '#3a3a3c';
   c.font = '600 18px -apple-system, sans-serif';
   c.textAlign = 'left';
   c.fillText('Resale Price', 36, 300);
 
-  // Resale Price value — big
-  c.fillStyle = '#a855f7';
+  // Resale Price value — big purple
+  c.fillStyle = '#7c3aed';
   c.font = 'bold 54px -apple-system, BlinkMacSystemFont, sans-serif';
   c.textAlign = 'left';
   c.fillText(fmtN(item.resalePrice), 36, 366);
 
   // Subcat pill
   if (item.subcat) {
-    c.fillStyle = 'rgba(124,58,237,0.15)';
-    const pillW = c.measureText(item.subcat).width + 40;
-    // measure with pill font first
     c.font = 'bold 13px -apple-system, sans-serif';
     const pw = c.measureText(item.subcat).width + 28;
+    c.fillStyle = 'rgba(124,58,237,0.1)';
     roundRect(c, 36, H - 72, pw, 28, 8);
     c.fill();
-    c.strokeStyle = 'rgba(124,58,237,0.3)';
+    c.strokeStyle = 'rgba(124,58,237,0.25)';
     c.lineWidth = 1;
     roundRect(c, 36, H - 72, pw, 28, 8);
     c.stroke();
-    c.fillStyle = '#a855f7';
+    c.fillStyle = '#7c3aed';
     c.textAlign = 'left';
     c.fillText(item.subcat, 50, H - 53);
   }
 
   // Bottom tagline
-  c.fillStyle = 'rgba(255,255,255,0.2)';
+  c.fillStyle = 'rgba(0,0,0,0.25)';
   c.font = '13px -apple-system, sans-serif';
   c.textAlign = 'right';
   c.fillText('Apple Resale', W - 36, H - 52);
@@ -2166,7 +2169,7 @@ async function shareResaleCard(idx) {
     const file = new File([blob], `${item.model || 'resale'}.png`, { type: 'image/png' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
-        await navigator.share({ files: [file], title: item.model, text: `${item.model}\nMRP: ${item.mrp ? fmtN(item.mrp) : 'N/A'}\nResale Price: ${fmtN(item.resalePrice)}` });
+        await navigator.share({ files: [file], title: item.model, text: `${item.model}${item.note ? '\n' + item.note : ''}\nMRP: ${item.mrp ? fmtN(item.mrp) : 'N/A'}\nResale Price: ${fmtN(item.resalePrice)}` });
       } catch(e) { if (e.name !== 'AbortError') fallbackDownload(canvas, item); }
     } else {
       fallbackDownload(canvas, item);
