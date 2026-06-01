@@ -2112,6 +2112,9 @@ function renderResaleContent() {
   // Reset subcat filter if no longer valid
   if (!subcats.includes(_resaleSubcatFilter)) _resaleSubcatFilter = 'ALL';
 
+  // Update segment editor for resale filters
+  renderSegEditor();
+
   // Filter data and always sort by resale price low → high
   const filtered = resaleData
     .map((item, idx) => ({ item, idx }))
@@ -2124,7 +2127,7 @@ function renderResaleContent() {
 
   // Category filter chips
   const catChips = cats.map(c => `
-    <button onclick="_resaleCatFilter='${c}';_resaleSubcatFilter='ALL';renderResaleContent()" style="
+    <button onclick="_resaleCatFilter='${c}';_resaleSubcatFilter='ALL';renderResaleContent();renderSegEditor()" style="
       padding:5px 13px;border-radius:20px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;white-space:nowrap;transition:all 0.15s;
       ${_resaleCatFilter === c
         ? 'background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:1px solid transparent'
@@ -2135,7 +2138,7 @@ function renderResaleContent() {
   const subcatChipsHtml = subcats.length > 1 ? `
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
       ${subcats.map(s => `
-        <button onclick="_resaleSubcatFilter='${s}';renderResaleContent()" style="
+        <button onclick="_resaleSubcatFilter='${s}';renderResaleContent();renderSegEditor()" style="
           padding:4px 11px;border-radius:16px;font-size:11px;font-weight:600;font-family:var(--font);cursor:pointer;white-space:nowrap;transition:all 0.15s;
           ${_resaleSubcatFilter === s
             ? 'background:#a855f7;color:#fff;border:1px solid transparent'
@@ -2701,32 +2704,60 @@ function setSegMode(mode) {
   _segMode = mode;
   document.getElementById('segModeDisc').classList.toggle('active', mode === 'disc');
   document.getElementById('segModePrice').classList.toggle('active', mode === 'price');
-  // Update labels
-  if (mode === 'disc') {
-    document.getElementById('segLabelFull').textContent = 'Full Swipe Discount (₹)';
-    document.getElementById('segLabelEMI').textContent = '6M EMI Discount (₹)';
-    document.getElementById('segInputFull').placeholder = 'e.g. 5000';
-    document.getElementById('segInputEMI').placeholder = 'e.g. 3000';
-  } else {
-    document.getElementById('segLabelFull').textContent = 'Full Swipe Net Price (₹)';
-    document.getElementById('segLabelEMI').textContent = '6M EMI Net Price (₹)';
-    document.getElementById('segInputFull').placeholder = 'e.g. 95000';
-    document.getElementById('segInputEMI').placeholder = 'e.g. 98000';
-  }
+  renderSegEditor();
 }
 
 function renderSegEditor() {
   const el = document.getElementById('segEditor');
-  if (!_isAdmin || isResaleTab) { el.classList.remove('visible'); return; }
-  // Show only when a specific subfilter is selected (not 'all')
-  if (currentSubfilter === 'all') { el.classList.remove('visible'); return; }
-  const items = getFilteredItems();
-  if (!items.length) { el.classList.remove('visible'); return; }
-  el.classList.add('visible');
-  // Update title & count
-  document.getElementById('segEditorTitle').textContent = `✏️ Edit: ${currentSubfilter}`;
-  document.getElementById('segEditorCount').textContent = `${items.length} item${items.length !== 1 ? 's' : ''}`;
-  // Clear inputs on each tab switch
+  if (!_isAdmin) { el.classList.remove('visible'); return; }
+
+  if (isResaleTab) {
+    // Show when a specific cat or subcat filter is active in resale
+    const hasFilter = _resaleSubcatFilter !== 'ALL' || _resaleCatFilter !== 'ALL';
+    if (!hasFilter) { el.classList.remove('visible'); return; }
+    const count = resaleData.filter(i => {
+      const catOk = _resaleCatFilter === 'ALL' || i.category === _resaleCatFilter;
+      const subOk = _resaleSubcatFilter === 'ALL' || i.subcat === _resaleSubcatFilter;
+      return catOk && subOk;
+    }).length;
+    if (!count) { el.classList.remove('visible'); return; }
+    el.classList.add('visible');
+    const catLabels = { IPHONE:'iPhone', IPAD:'iPad', MACBOOK:'Mac', OTHER:'Other' };
+    const label = _resaleSubcatFilter !== 'ALL' ? _resaleSubcatFilter : (catLabels[_resaleCatFilter] || _resaleCatFilter);
+    document.getElementById('segEditorTitle').textContent = `✏️ Edit: ${label}`;
+    document.getElementById('segEditorCount').textContent = `${count} item${count !== 1 ? 's' : ''}`;
+    document.getElementById('segFieldEMI').style.display = 'none';
+    document.getElementById('segModeDisc').textContent = 'Reduce by Amount';
+    document.getElementById('segModePrice').textContent = 'Set Fixed Price';
+    if (_segMode === 'disc') {
+      document.getElementById('segLabelFull').textContent = 'Resale Price Reduction (₹)';
+      document.getElementById('segInputFull').placeholder = 'e.g. 2000 off each item';
+    } else {
+      document.getElementById('segLabelFull').textContent = 'New Resale Price (₹)';
+      document.getElementById('segInputFull').placeholder = 'e.g. 85000';
+    }
+  } else {
+    if (currentSubfilter === 'all') { el.classList.remove('visible'); return; }
+    const items = getFilteredItems();
+    if (!items.length) { el.classList.remove('visible'); return; }
+    el.classList.add('visible');
+    document.getElementById('segEditorTitle').textContent = `✏️ Edit: ${currentSubfilter}`;
+    document.getElementById('segEditorCount').textContent = `${items.length} item${items.length !== 1 ? 's' : ''}`;
+    document.getElementById('segFieldEMI').style.display = '';
+    document.getElementById('segModeDisc').textContent = 'Set Card Discount';
+    document.getElementById('segModePrice').textContent = 'Set Net Price';
+    if (_segMode === 'disc') {
+      document.getElementById('segLabelFull').textContent = 'Full Swipe Discount (₹)';
+      document.getElementById('segLabelEMI').textContent = '6M EMI Discount (₹)';
+      document.getElementById('segInputFull').placeholder = 'e.g. 5000';
+      document.getElementById('segInputEMI').placeholder = 'e.g. 3000';
+    } else {
+      document.getElementById('segLabelFull').textContent = 'Full Swipe Net Price (₹)';
+      document.getElementById('segLabelEMI').textContent = '6M EMI Net Price (₹)';
+      document.getElementById('segInputFull').placeholder = 'e.g. 95000';
+      document.getElementById('segInputEMI').placeholder = 'e.g. 98000';
+    }
+  }
   document.getElementById('segInputFull').value = '';
   document.getElementById('segInputEMI').value = '';
 }
@@ -2743,48 +2774,51 @@ function applySegmentPrices() {
   const emiVal  = document.getElementById('segInputEMI').value.trim();
   if (!fullVal && !emiVal) { showToast('⚠️ Enter at least one value to apply'); return; }
 
+  // ── RESALE MODE ──
+  if (isResaleTab) {
+    const targets = resaleData.filter(i => {
+      const catOk = _resaleCatFilter === 'ALL' || i.category === _resaleCatFilter;
+      const subOk = _resaleSubcatFilter === 'ALL' || i.subcat === _resaleSubcatFilter;
+      return catOk && subOk;
+    });
+    if (!targets.length) { showToast('⚠️ No items in this segment'); return; }
+    let changed = 0;
+    targets.forEach(item => {
+      if (fullVal !== '') {
+        if (_segMode === 'disc') {
+          item.resalePrice = Math.max(0, (item.resalePrice || 0) - (parseInt(fullVal) || 0));
+        } else {
+          item.resalePrice = parseInt(fullVal) || 0;
+        }
+        changed++;
+      }
+    });
+    try { localStorage.setItem('_resaleData', JSON.stringify(resaleData)); } catch(e) {}
+    if (_fbDb) fbSave();
+    const label = _resaleSubcatFilter !== 'ALL' ? _resaleSubcatFilter : (_resaleCatFilter !== 'ALL' ? _resaleCatFilter : 'segment');
+    showToast(`✅ Updated ${changed} resale item${changed !== 1 ? 's' : ''} in "${label}"`);
+    renderResaleContent();
+    return;
+  }
+
+  // ── NORMAL TABS MODE ──
   const items = getFilteredItems();
   if (!items.length) { showToast('⚠️ No items in this segment'); return; }
-
   let changed = 0;
   items.forEach(item => {
-    const cat = item._cat;
-    const idx = item._idx;
-    const row = data[cat][idx];
+    const row = data[item._cat][item._idx];
     if (!row) return;
-
     if (_segMode === 'disc') {
-      // Set card discount → recalculate net price from NLC
-      if (fullVal !== '') {
-        const disc = parseInt(fullVal) || 0;
-        row.discFull  = disc;
-        row.priceFull = row.nlc - disc;
-      }
-      if (emiVal !== '') {
-        const disc = parseInt(emiVal) || 0;
-        row.discEMI  = disc;
-        row.priceEMI = row.nlc - disc;
-      }
+      if (fullVal !== '') { row.discFull = parseInt(fullVal)||0; row.priceFull = row.nlc - row.discFull; }
+      if (emiVal !== '')  { row.discEMI  = parseInt(emiVal)||0;  row.priceEMI  = row.nlc - row.discEMI; }
     } else {
-      // Set absolute net price → back-calculate discount
-      if (fullVal !== '') {
-        const price = parseInt(fullVal) || 0;
-        row.priceFull = price;
-        row.discFull  = Math.max(0, row.nlc - price);
-      }
-      if (emiVal !== '') {
-        const price = parseInt(emiVal) || 0;
-        row.priceEMI = price;
-        row.discEMI  = Math.max(0, row.nlc - price);
-      }
+      if (fullVal !== '') { row.priceFull = parseInt(fullVal)||0; row.discFull = Math.max(0, row.nlc - row.priceFull); }
+      if (emiVal !== '')  { row.priceEMI  = parseInt(emiVal)||0;  row.discEMI  = Math.max(0, row.nlc - row.priceEMI); }
     }
     changed++;
   });
-
-  // Persist to localStorage + Firebase
   try { localStorage.setItem('_data', JSON.stringify(data)); } catch(e) {}
   if (_fbDb) fbSave();
-
   showToast(`✅ Updated ${changed} item${changed !== 1 ? 's' : ''} in "${currentSubfilter}"`);
   renderContent();
 }
