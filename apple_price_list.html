@@ -371,6 +371,136 @@
 
 
 
+  /* ── ADMIN SEGMENT PRICE EDITOR ── */
+  .seg-editor {
+    display: none;
+    background: linear-gradient(135deg, rgba(255,149,0,0.08), rgba(255,69,58,0.06));
+    border: 1.5px solid rgba(255,149,0,0.3);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    animation: segIn 0.2s ease;
+  }
+  @keyframes segIn {
+    from { opacity:0; transform: translateY(-6px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+  .seg-editor.visible { display: block; }
+  .seg-editor-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .seg-editor-icon {
+    font-size: 16px;
+  }
+  .seg-editor-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #ff9500;
+    flex: 1;
+  }
+  .seg-editor-count {
+    font-size: 11px;
+    color: var(--text3);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2px 9px;
+  }
+  .seg-editor-fields {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+  .seg-field {
+    flex: 1;
+    min-width: 140px;
+  }
+  .seg-field label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text3);
+    margin-bottom: 5px;
+  }
+  .seg-field input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: var(--font);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .seg-field input:focus { border-color: #ff9500; }
+  .seg-field input::placeholder { color: var(--text3); font-size: 12px; }
+  .seg-editor-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    align-self: flex-end;
+  }
+  .seg-apply-btn {
+    padding: 9px 18px;
+    border-radius: 9px;
+    border: none;
+    background: #ff9500;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .seg-apply-btn:hover { background: #e08600; transform: translateY(-1px); }
+  .seg-apply-btn:active { transform: scale(0.97); }
+  .seg-reset-btn {
+    padding: 9px 14px;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--text3);
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .seg-reset-btn:hover { border-color: var(--text3); color: var(--text); }
+  .seg-mode-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .seg-mode-tab {
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: none;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    color: var(--text3);
+    transition: all 0.15s;
+  }
+  .seg-mode-tab.active {
+    background: #ff9500;
+    border-color: transparent;
+    color: #fff;
+  }
+
   /* FAB */
   .fab {
     position: fixed;
@@ -1344,6 +1474,34 @@
   <div class="tabs" id="tabs"></div>
   <div class="stock-summary-bar" id="stockSummaryBar"></div>
   <div class="subfilters" id="subfilters"></div>
+
+  <!-- Admin Segment Price Editor -->
+  <div class="seg-editor" id="segEditor">
+    <div class="seg-editor-header">
+      <span class="seg-editor-icon">⚡</span>
+      <span class="seg-editor-title" id="segEditorTitle">Bulk Edit Segment Prices</span>
+      <span class="seg-editor-count" id="segEditorCount">0 items</span>
+    </div>
+    <div class="seg-mode-tabs">
+      <button class="seg-mode-tab active" id="segModeDisc" onclick="setSegMode('disc')">Set Card Discount</button>
+      <button class="seg-mode-tab" id="segModePrice" onclick="setSegMode('price')">Set Net Price</button>
+    </div>
+    <div class="seg-editor-fields">
+      <div class="seg-field" id="segFieldFull">
+        <label id="segLabelFull">Full Swipe Discount (₹)</label>
+        <input type="number" id="segInputFull" placeholder="Leave blank to skip" min="0">
+      </div>
+      <div class="seg-field" id="segFieldEMI">
+        <label id="segLabelEMI">6M EMI Discount (₹)</label>
+        <input type="number" id="segInputEMI" placeholder="Leave blank to skip" min="0">
+      </div>
+      <div class="seg-editor-actions">
+        <button class="seg-reset-btn" onclick="resetSegEditor()">↩ Reset</button>
+        <button class="seg-apply-btn" onclick="applySegmentPrices()">⚡ Apply to All</button>
+      </div>
+    </div>
+  </div>
+
   <div class="stats-bar" id="statsBar"></div>
   <div class="filter-bar" id="filterBar">
     <div class="filter-bar-inner">
@@ -1805,6 +1963,7 @@ function setCategory(cat) {
   filterStockOnly = false;
   renderTabs();
   renderSubfilters();
+  renderSegEditor();
   renderContent();
   renderStockBar();
 }
@@ -1837,6 +1996,7 @@ function switchToNormal(cat) {
 
   renderTabs();
   renderSubfilters();
+  renderSegEditor();
   renderContent();
   renderStockBar();
 }
@@ -2530,6 +2690,102 @@ function submitResaleProduct() {
 function setSubfilter(sf) {
   currentSubfilter = sf;
   renderSubfilters();
+  renderSegEditor();
+  renderContent();
+}
+
+// ── ADMIN SEGMENT PRICE EDITOR ─────────────────────────────────────────
+let _segMode = 'disc'; // 'disc' or 'price'
+
+function setSegMode(mode) {
+  _segMode = mode;
+  document.getElementById('segModeDisc').classList.toggle('active', mode === 'disc');
+  document.getElementById('segModePrice').classList.toggle('active', mode === 'price');
+  // Update labels
+  if (mode === 'disc') {
+    document.getElementById('segLabelFull').textContent = 'Full Swipe Discount (₹)';
+    document.getElementById('segLabelEMI').textContent = '6M EMI Discount (₹)';
+    document.getElementById('segInputFull').placeholder = 'e.g. 5000';
+    document.getElementById('segInputEMI').placeholder = 'e.g. 3000';
+  } else {
+    document.getElementById('segLabelFull').textContent = 'Full Swipe Net Price (₹)';
+    document.getElementById('segLabelEMI').textContent = '6M EMI Net Price (₹)';
+    document.getElementById('segInputFull').placeholder = 'e.g. 95000';
+    document.getElementById('segInputEMI').placeholder = 'e.g. 98000';
+  }
+}
+
+function renderSegEditor() {
+  const el = document.getElementById('segEditor');
+  if (!_isAdmin || isResaleTab) { el.classList.remove('visible'); return; }
+  // Show only when a specific subfilter is selected (not 'all')
+  if (currentSubfilter === 'all') { el.classList.remove('visible'); return; }
+  const items = getFilteredItems();
+  if (!items.length) { el.classList.remove('visible'); return; }
+  el.classList.add('visible');
+  // Update title & count
+  document.getElementById('segEditorTitle').textContent = `✏️ Edit: ${currentSubfilter}`;
+  document.getElementById('segEditorCount').textContent = `${items.length} item${items.length !== 1 ? 's' : ''}`;
+  // Clear inputs on each tab switch
+  document.getElementById('segInputFull').value = '';
+  document.getElementById('segInputEMI').value = '';
+}
+
+function resetSegEditor() {
+  document.getElementById('segInputFull').value = '';
+  document.getElementById('segInputEMI').value = '';
+  showToast('↩ Inputs cleared');
+}
+
+function applySegmentPrices() {
+  if (!_isAdmin) { showToast('🔒 Admin login required'); return; }
+  const fullVal = document.getElementById('segInputFull').value.trim();
+  const emiVal  = document.getElementById('segInputEMI').value.trim();
+  if (!fullVal && !emiVal) { showToast('⚠️ Enter at least one value to apply'); return; }
+
+  const items = getFilteredItems();
+  if (!items.length) { showToast('⚠️ No items in this segment'); return; }
+
+  let changed = 0;
+  items.forEach(item => {
+    const cat = item._cat;
+    const idx = item._idx;
+    const row = data[cat][idx];
+    if (!row) return;
+
+    if (_segMode === 'disc') {
+      // Set card discount → recalculate net price from NLC
+      if (fullVal !== '') {
+        const disc = parseInt(fullVal) || 0;
+        row.discFull  = disc;
+        row.priceFull = row.nlc - disc;
+      }
+      if (emiVal !== '') {
+        const disc = parseInt(emiVal) || 0;
+        row.discEMI  = disc;
+        row.priceEMI = row.nlc - disc;
+      }
+    } else {
+      // Set absolute net price → back-calculate discount
+      if (fullVal !== '') {
+        const price = parseInt(fullVal) || 0;
+        row.priceFull = price;
+        row.discFull  = Math.max(0, row.nlc - price);
+      }
+      if (emiVal !== '') {
+        const price = parseInt(emiVal) || 0;
+        row.priceEMI = price;
+        row.discEMI  = Math.max(0, row.nlc - price);
+      }
+    }
+    changed++;
+  });
+
+  // Persist to localStorage + Firebase
+  try { localStorage.setItem('_data', JSON.stringify(data)); } catch(e) {}
+  if (_fbDb) fbSave();
+
+  showToast(`✅ Updated ${changed} item${changed !== 1 ? 's' : ''} in "${currentSubfilter}"`);
   renderContent();
 }
 
@@ -3493,6 +3749,8 @@ function _setAdminMode(on, persist) {
   if (impIphFab) impIphFab.style.display = on ? 'flex' : 'none';
   // Re-render resale cards if resale tab is active (to show/hide edit button)
   if (isResaleTab) renderResaleContent();
+  // Show/hide segment editor depending on admin state
+  renderSegEditor();
 }
 
 // Guard: intercept edit/delete/add if not admin
