@@ -1464,6 +1464,27 @@
     color: var(--text3);
   }
   .laptop-empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .laptop-stock-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+  .laptop-stock-row.in-stock { background: rgba(48,209,88,0.1); color: #30D158; border: 1px solid rgba(48,209,88,0.25); }
+  .laptop-stock-row.out-stock { background: rgba(255,69,58,0.1); color: #FF453A; border: 1px solid rgba(255,69,58,0.25); }
+  .laptop-filter-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .laptop-filter-row .chip { cursor: pointer; }
+  .laptop-filter-row .chip.active { border-color: #14b8a6; color: #14b8a6; background: rgba(20,184,166,0.1); }
 
   /* Empty resale */
   .resale-empty {
@@ -1756,6 +1777,7 @@ let filterStorage = '';
 let filterMin = '';
 let filterMax = '';
 let filterModel = '';
+let laptopFilterBrand = '';
 let filterStock = '';
 let filterStockOnly = false;
 
@@ -2069,6 +2091,8 @@ function switchToNormal(cat) {
   document.getElementById('filterBar').style.display = '';
   const filterBarEl = document.getElementById('filterBar');
   filterBarEl.classList.remove('open');
+  const searchEl = document.getElementById('search');
+  if (searchEl) searchEl.placeholder = 'Search models...';
   // Show pay toggle
   document.querySelectorAll('.pay-toggle, .view-toggle').forEach(el => el.style.display = '');
   // Show FAB group
@@ -2184,6 +2208,8 @@ function switchToLaptop() {
   document.querySelectorAll('.pay-toggle').forEach(el => el.style.display = 'none');
   document.querySelectorAll('.view-toggle').forEach(el => el.style.display = 'none');
   document.querySelector('.fab-group').style.display = 'none';
+  const searchEl = document.getElementById('search');
+  if (searchEl) searchEl.placeholder = 'Search brand, model, spec, RAM, storage…';
 
   // Remove resale FABs if present
   const resFab = document.getElementById('resaleFab');
@@ -2250,15 +2276,58 @@ function renderLaptopContent() {
     return;
   }
 
-  const cards = laptopData.map((item, idx) => {
+  // Distinct brands present, for the brand filter chips
+  const brands = [...new Set(laptopData.map(i => (i.brand || '').trim()).filter(Boolean))].sort();
+
+  // Search across every field ("search by anything") + brand filter
+  const q = (searchQuery || '').toLowerCase();
+  let items = laptopData.map((item, idx) => ({ item, idx }));
+  if (laptopFilterBrand) {
+    items = items.filter(({item}) => (item.brand || '').trim() === laptopFilterBrand);
+  }
+  if (q) {
+    items = items.filter(({item}) => {
+      const haystack = [item.brand, item.model, item.spec, item.ram, item.storage, item.note,
+        item.purchasePrice, item.sellingPrice, item.stock].filter(Boolean).join(' ').toLowerCase();
+      return haystack.includes(q);
+    });
+  }
+
+  const filterBar = brands.length ? `
+    <div class="laptop-filter-row">
+      <span style="font-size:12px;color:var(--text3);font-weight:600">Brand:</span>
+      <button class="chip${laptopFilterBrand === '' ? ' active' : ''}" onclick="setLaptopBrandFilter('')">All</button>
+      ${brands.map(b => `<button class="chip${laptopFilterBrand === b ? ' active' : ''}" onclick="setLaptopBrandFilter('${b.replace(/'/g,"\\'")}')">${b}</button>`).join('')}
+    </div>` : '';
+
+  if (!items.length) {
+    area.innerHTML = `
+      <div style="margin-bottom:16px">
+        <span style="font-size:12px;color:var(--text3)">${laptopData.length} laptop${laptopData.length !== 1 ? 's' : ''} in stock &mdash; separate from Apple products &amp; resale</span>
+      </div>
+      ${filterBar}
+      <div class="laptop-empty">
+        <div class="laptop-empty-icon">🔍</div>
+        <h3>No matches</h3>
+        <p>No laptops match your search or brand filter.</p>
+      </div>`;
+    return;
+  }
+
+  const cards = items.map(({item, idx}) => {
     const metaParts = [item.spec, item.ram ? item.ram + ' RAM' : '', item.storage].filter(Boolean);
     const profit = (item.sellingPrice && item.purchasePrice) ? (item.sellingPrice - item.purchasePrice) : null;
+    const inStock = item.stock > 0;
     return `
     <div class="laptop-card" id="lcard-${idx}">
-      <span class="laptop-badge">💻 ${item.stock > 0 ? item.stock + ' IN STOCK' : 'OUT OF STOCK'}</span>
+      <span class="laptop-badge">💻 ${inStock ? item.stock + ' IN STOCK' : 'OUT OF STOCK'}</span>
       <div class="laptop-model">${item.brand ? item.brand + ' — ' : ''}${item.model}</div>
       ${metaParts.length ? `<div class="laptop-meta">${metaParts.join(' · ')}</div>` : ''}
       ${item.note ? `<div class="laptop-meta">${item.note}</div>` : ''}
+      <div class="laptop-stock-row ${inStock ? 'in-stock' : 'out-stock'}">
+        <span>${inStock ? '📦 Available Stock' : '⛔ Out of Stock'}</span>
+        <span>${inStock ? item.stock + ' unit' + (item.stock !== 1 ? 's' : '') : '0 units'}</span>
+      </div>
       <div class="laptop-divider"></div>
       ${item.purchasePrice ? `<div class="laptop-price-row"><span class="laptop-price-label">Purchase Price</span><span style="font-size:13px;color:var(--text2);font-weight:400;">${fmt(item.purchasePrice)}</span></div>` : ''}
       <div class="laptop-price-row" style="margin-top:${item.purchasePrice ? 8 : 0}px">
@@ -2279,10 +2348,16 @@ function renderLaptopContent() {
 
   area.innerHTML = `
     <div style="margin-bottom:16px">
-      <span style="font-size:12px;color:var(--text3)">${laptopData.length} laptop${laptopData.length !== 1 ? 's' : ''} in stock &mdash; separate from Apple products &amp; resale</span>
+      <span style="font-size:12px;color:var(--text3)">${items.length} of ${laptopData.length} laptop${laptopData.length !== 1 ? 's' : ''} shown &mdash; separate from Apple products &amp; resale</span>
     </div>
+    ${filterBar}
     <div class="grid">${cards}</div>
   `;
+}
+
+function setLaptopBrandFilter(brand) {
+  laptopFilterBrand = brand;
+  renderLaptopContent();
 }
 
 function confirmDeleteLaptop(idx) {
@@ -3452,7 +3527,7 @@ function renderTable(items) {
 // Search
 document.getElementById('search').addEventListener('input', e => {
   searchQuery = e.target.value.trim();
-  renderContent();
+  if (isLaptopTab) { renderLaptopContent(); } else { renderContent(); }
 });
 
 // ── MODAL ──────────────────────────────────────────────────────────────
