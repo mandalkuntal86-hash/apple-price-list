@@ -1394,6 +1394,77 @@
     border-bottom: 1px solid rgba(124,58,237,0.2);
   }
 
+  /* ── LAPTOP STOCK TAB (separate, non-Apple laptops) ── */
+  .tab-laptop.active {
+    background: linear-gradient(135deg, #0d9488, #14b8a6);
+    border-color: #0d9488;
+    color: #fff;
+  }
+  .tab-laptop:not(.active) { border-color: rgba(20,184,166,0.4); color: #14b8a6; }
+  .tab-laptop:not(.active):hover { border-color: #14b8a6; color: #14b8a6; background: rgba(20,184,166,0.07); }
+
+  .laptop-card {
+    background: var(--surface);
+    border: 1px solid rgba(20,184,166,0.25);
+    border-radius: var(--radius);
+    padding: 18px 18px 14px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s;
+  }
+  .laptop-card:hover { border-color: rgba(20,184,166,0.5); transform: translateY(-1px); box-shadow: 0 6px 24px rgba(20,184,166,0.12); }
+  .laptop-model { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; line-height: 1.3; }
+  .laptop-meta { font-size: 11.5px; color: var(--text3); margin-bottom: 12px; }
+  .laptop-divider { height: 1px; background: rgba(20,184,166,0.15); margin: 12px 0; }
+  .laptop-price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .laptop-price-label { font-size: 12px; color: var(--text3); }
+  .laptop-price-val {
+    font-size: 20px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #0d9488, #14b8a6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .laptop-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(20,184,166,0.1);
+    border: 1px solid rgba(20,184,166,0.25);
+    color: #14b8a6;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    position: absolute;
+    top: 14px;
+    right: 14px;
+  }
+  .laptop-fab {
+    background: linear-gradient(135deg, #0d9488, #14b8a6) !important;
+    box-shadow: 0 4px 20px rgba(20,184,166,0.45) !important;
+  }
+  .laptop-fab:hover { background: linear-gradient(135deg, #0f766e, #0d9488) !important; box-shadow: 0 6px 28px rgba(20,184,166,0.6) !important; }
+  .laptop-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #14b8a6;
+    margin: 20px 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(20,184,166,0.2);
+  }
+  .laptop-empty {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text3);
+  }
+  .laptop-empty-icon { font-size: 40px; margin-bottom: 12px; }
+
   /* Empty resale */
   .resale-empty {
     text-align: center;
@@ -1871,6 +1942,23 @@ function loadResaleFromLocal() {
 }
 let isResaleTab = false;
 
+// ── LAPTOP STOCK DATA (separate, independent — non-Apple laptops) ────
+let laptopData = [];
+function saveLaptopStock() {
+  try { localStorage.setItem('_laptopData', JSON.stringify(laptopData)); } catch(e){}
+  if (_fbDb) fbSave();
+}
+function loadLaptopFromLocal() {
+  try {
+    const s = localStorage.getItem('_laptopData');
+    if (s) {
+      const p = JSON.parse(s);
+      if (Array.isArray(p)) laptopData = p;
+    }
+  } catch(e){}
+}
+let isLaptopTab = false;
+
 function getSubcats(cat) {
   const items = data[cat];
   if (!items) return [];
@@ -1970,6 +2058,7 @@ function setCategory(cat) {
 
 function switchToNormal(cat) {
   isResaleTab = false;
+  isLaptopTab = false;
   currentCategory = cat;
   try { localStorage.setItem('_activeTab', cat); } catch(e) {}
   currentSubfilter = 'all';
@@ -1993,6 +2082,10 @@ function switchToNormal(cat) {
   if (impMacFab) impMacFab.remove();
   const impIphFab = document.getElementById('importIphoneResaleFab');
   if (impIphFab) impIphFab.remove();
+  const laptopFab = document.getElementById('laptopFab');
+  if (laptopFab) laptopFab.remove();
+  const laptopImpFab = document.getElementById('laptopImportFab');
+  if (laptopImpFab) laptopImpFab.remove();
 
   renderTabs();
   renderSubfilters();
@@ -2003,6 +2096,7 @@ function switchToNormal(cat) {
 
 function switchToResale() {
   isResaleTab = true;
+  isLaptopTab = false;
   try { localStorage.setItem('_activeTab', 'RESALE'); } catch(e) {}
   // Hide normal UI elements that don't apply
   document.getElementById('subfilters').style.display = 'none';
@@ -2067,10 +2161,380 @@ function switchToResale() {
     document.getElementById('importIphoneResaleFab').style.display = _isAdmin ? 'flex' : 'none';
   }
 
+  const laptopFab = document.getElementById('laptopFab');
+  if (laptopFab) laptopFab.remove();
+  const laptopImpFab = document.getElementById('laptopImportFab');
+  if (laptopImpFab) laptopImpFab.remove();
+
   renderTabs();
   renderResaleContent();
   // Always hide segment editor in resale tab
   document.getElementById('segEditor').classList.remove('visible');
+}
+
+// ── LAPTOP STOCK TAB SWITCH ─────────────────────────────────────────────
+function switchToLaptop() {
+  isLaptopTab = true;
+  isResaleTab = false;
+  try { localStorage.setItem('_activeTab', 'LAPTOP'); } catch(e) {}
+  // Hide normal UI elements that don't apply
+  document.getElementById('subfilters').style.display = 'none';
+  document.getElementById('statsBar').style.display = 'none';
+  document.getElementById('filterBar').style.display = 'none';
+  document.querySelectorAll('.pay-toggle').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.view-toggle').forEach(el => el.style.display = 'none');
+  document.querySelector('.fab-group').style.display = 'none';
+
+  // Remove resale FABs if present
+  const resFab = document.getElementById('resaleFab');
+  if (resFab) resFab.remove();
+  const impFab = document.getElementById('importResaleFab');
+  if (impFab) impFab.remove();
+  const impMacFab = document.getElementById('importMacResaleFab');
+  if (impMacFab) impMacFab.remove();
+  const impIphFab = document.getElementById('importIphoneResaleFab');
+  if (impIphFab) impIphFab.remove();
+
+  // Add "Add Laptop" FAB — only visible in admin mode
+  if (!document.getElementById('laptopFab')) {
+    const fab = document.createElement('button');
+    fab.id = 'laptopFab';
+    fab.className = 'fab laptop-fab';
+    fab.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Laptop`;
+    fab.onclick = () => openLaptopModal();
+    fab.style.position = 'fixed';
+    fab.style.bottom = '28px';
+    fab.style.right = '28px';
+    fab.style.zIndex = '200';
+    fab.style.display = _isAdmin ? 'flex' : 'none';
+    document.body.appendChild(fab);
+  } else {
+    document.getElementById('laptopFab').style.display = _isAdmin ? 'flex' : 'none';
+  }
+
+  // Add "Import Excel" FAB (bulk upload) — only visible in admin mode
+  if (!document.getElementById('laptopImportFab')) {
+    const impFab = document.createElement('button');
+    impFab.id = 'laptopImportFab';
+    impFab.className = 'fab laptop-fab';
+    impFab.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3v12M12 15l-4-4M12 15l4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg> Import Excel`;
+    impFab.onclick = () => triggerLaptopExcelImport();
+    impFab.style.position = 'fixed';
+    impFab.style.bottom = '84px';
+    impFab.style.right = '28px';
+    impFab.style.zIndex = '200';
+    impFab.style.background = 'linear-gradient(135deg,#6366f1,#818cf8)';
+    impFab.style.display = _isAdmin ? 'flex' : 'none';
+    document.body.appendChild(impFab);
+  } else {
+    document.getElementById('laptopImportFab').style.display = _isAdmin ? 'flex' : 'none';
+  }
+
+  renderTabs();
+  renderLaptopContent();
+  document.getElementById('segEditor').classList.remove('visible');
+}
+
+// ── LAPTOP STOCK RENDER ───────────────────────────────────────────────
+function renderLaptopContent() {
+  const area = document.getElementById('contentArea');
+  const stockBar = document.getElementById('stockSummaryBar');
+  if (stockBar) stockBar.innerHTML = '';
+
+  if (!laptopData.length) {
+    area.innerHTML = `<div class="laptop-empty">
+      <div class="laptop-empty-icon">💻</div>
+      <h3>No Laptop Stock</h3>
+      <p>Add your non-Apple laptop inventory here — kept fully separate from Apple products and resale.</p>
+    </div>`;
+    return;
+  }
+
+  const cards = laptopData.map((item, idx) => {
+    const metaParts = [item.spec, item.ram ? item.ram + ' RAM' : '', item.storage].filter(Boolean);
+    const profit = (item.sellingPrice && item.purchasePrice) ? (item.sellingPrice - item.purchasePrice) : null;
+    return `
+    <div class="laptop-card" id="lcard-${idx}">
+      <span class="laptop-badge">💻 ${item.stock > 0 ? item.stock + ' IN STOCK' : 'OUT OF STOCK'}</span>
+      <div class="laptop-model">${item.brand ? item.brand + ' — ' : ''}${item.model}</div>
+      ${metaParts.length ? `<div class="laptop-meta">${metaParts.join(' · ')}</div>` : ''}
+      ${item.note ? `<div class="laptop-meta">${item.note}</div>` : ''}
+      <div class="laptop-divider"></div>
+      ${item.purchasePrice ? `<div class="laptop-price-row"><span class="laptop-price-label">Purchase Price</span><span style="font-size:13px;color:var(--text2);font-weight:400;">${fmt(item.purchasePrice)}</span></div>` : ''}
+      <div class="laptop-price-row" style="margin-top:${item.purchasePrice ? 8 : 0}px">
+        <span class="laptop-price-label" style="font-size:13px;color:var(--text)">Selling Price</span>
+        <span class="laptop-price-val">${fmt(item.sellingPrice || 0)}</span>
+      </div>
+      ${profit !== null ? `<div style="display:flex;justify-content:flex-end;margin-top:6px">
+        <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;${profit > 0 ? 'background:rgba(48,209,88,0.12);color:#30D158;border:1px solid rgba(48,209,88,0.3)' : profit < 0 ? 'background:rgba(255,69,58,0.12);color:#FF453A;border:1px solid rgba(255,69,58,0.3)' : 'color:var(--text3)'}">
+          ${profit > 0 ? '+'+fmt(profit)+' margin' : profit < 0 ? fmt(profit)+' loss' : 'Break-even'}
+        </span>
+      </div>` : ''}
+      <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+        ${_isAdmin ? `<button onclick="openLaptopModal(${idx})" style="flex:1;padding:7px 0;border-radius:9px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;border:1px solid rgba(20,184,166,0.25);background:rgba(20,184,166,0.12);color:#14b8a6">✏️ Edit</button>
+        <button onclick="confirmDeleteLaptop(${idx})" style="flex:1;padding:7px 0;border-radius:9px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;border:1px solid rgba(255,59,48,0.3);background:rgba(255,59,48,0.1);color:#ff453a">🗑 Delete</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  area.innerHTML = `
+    <div style="margin-bottom:16px">
+      <span style="font-size:12px;color:var(--text3)">${laptopData.length} laptop${laptopData.length !== 1 ? 's' : ''} in stock &mdash; separate from Apple products &amp; resale</span>
+    </div>
+    <div class="grid">${cards}</div>
+  `;
+}
+
+function confirmDeleteLaptop(idx) {
+  if (!_isAdmin) { showToast('🔒 Admin login required'); return; }
+  const item = laptopData[idx];
+  const overlay = document.createElement('div');
+  overlay.id = 'deleteConfirmOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
+  overlay.innerHTML = `
+    <div style="background:#1c1c1e;border:1px solid #3a3a3a;border-radius:18px;padding:24px;max-width:320px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+      <div style="font-size:36px;margin-bottom:12px">🗑</div>
+      <div style="font-size:16px;font-weight:700;color:#f5f5f7;margin-bottom:8px">Delete Item?</div>
+      <div style="font-size:13px;color:#8e8e93;margin-bottom:20px;line-height:1.5">${item.brand ? item.brand + ' — ' : ''}${item.model}</div>
+      <div style="display:flex;gap:10px">
+        <button onclick="document.getElementById('deleteConfirmOverlay').remove()" style="flex:1;padding:10px;border-radius:10px;font-size:14px;font-weight:600;font-family:var(--font);cursor:pointer;border:1px solid #3a3a3a;background:#2c2c2e;color:#f5f5f7">Cancel</button>
+        <button onclick="document.getElementById('deleteConfirmOverlay').remove();deleteLaptopItem(${idx})" style="flex:1;padding:10px;border-radius:10px;font-size:14px;font-weight:600;font-family:var(--font);cursor:pointer;border:none;background:linear-gradient(135deg,#ff3b30,#ff453a);color:#fff">Delete</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+}
+
+function deleteLaptopItem(idx) {
+  if (!_isAdmin) { showToast('🔒 Admin login required'); return; }
+  const item = laptopData[idx];
+  laptopData.splice(idx, 1);
+  saveLaptopStock();
+  renderTabs();
+  renderLaptopContent();
+  showToast('🗑 Deleted: ' + item.model);
+}
+
+// ── LAPTOP STOCK MODAL ──────────────────────────────────────────────────
+function openLaptopModal(editIdx) {
+  if (!_isAdmin) { showToast('🔒 Admin login required'); return; }
+  document.getElementById('laptopModalOverlay').classList.add('open');
+  document.getElementById('lf_brand').value = '';
+  document.getElementById('lf_model').value = '';
+  document.getElementById('lf_spec').value = '';
+  document.getElementById('lf_ram').value = '';
+  document.getElementById('lf_storage').value = '';
+  document.getElementById('lf_purchasePrice').value = '';
+  document.getElementById('lf_sellingPrice').value = '';
+  document.getElementById('lf_stock').value = '';
+  document.getElementById('lf_note').value = '';
+  document.getElementById('lf_error').style.display = 'none';
+  document.getElementById('laptopModalOverlay').dataset.editIdx = (editIdx !== undefined) ? editIdx : '';
+  const isEdit = editIdx !== undefined;
+  document.querySelector('#laptopModalOverlay .modal-title').textContent = isEdit ? '✏️ Edit Laptop' : '💻 Add Laptop';
+  document.querySelector('#laptopModalOverlay .btn-submit').textContent = isEdit ? 'Save Changes' : 'Add Laptop';
+  if (isEdit) {
+    const item = laptopData[editIdx];
+    document.getElementById('lf_brand').value = item.brand || '';
+    document.getElementById('lf_model').value = item.model || '';
+    document.getElementById('lf_spec').value = item.spec || '';
+    document.getElementById('lf_ram').value = item.ram || '';
+    document.getElementById('lf_storage').value = item.storage || '';
+    document.getElementById('lf_purchasePrice').value = item.purchasePrice || '';
+    document.getElementById('lf_sellingPrice').value = item.sellingPrice || '';
+    document.getElementById('lf_stock').value = item.stock || '';
+    document.getElementById('lf_note').value = item.note || '';
+  }
+  setTimeout(() => document.getElementById('lf_model').focus(), 100);
+}
+function closeLaptopModal() {
+  document.getElementById('laptopModalOverlay').classList.remove('open');
+}
+
+function submitLaptopProduct() {
+  const brand          = document.getElementById('lf_brand').value.trim();
+  const model           = document.getElementById('lf_model').value.trim();
+  const spec            = document.getElementById('lf_spec').value.trim();
+  const ram             = document.getElementById('lf_ram').value.trim();
+  const storage         = document.getElementById('lf_storage').value.trim();
+  const purchasePrice   = parseInt(document.getElementById('lf_purchasePrice').value) || 0;
+  const sellingPrice    = parseInt(document.getElementById('lf_sellingPrice').value) || 0;
+  const stock           = parseInt(document.getElementById('lf_stock').value) || 0;
+  const note            = document.getElementById('lf_note').value.trim();
+  const errEl           = document.getElementById('lf_error');
+
+  if (!model) { errEl.textContent = 'Model name is required.'; errEl.style.display = 'block'; return; }
+  if (!sellingPrice) { errEl.textContent = 'Selling price is required.'; errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+
+  const newItem = { brand, model, spec, ram, storage, purchasePrice, sellingPrice, stock, note, addedAt: Date.now() };
+  const editIdxRaw = document.getElementById('laptopModalOverlay').dataset.editIdx;
+  const isEdit = editIdxRaw !== '' && editIdxRaw !== undefined && editIdxRaw !== null;
+
+  if (isEdit) {
+    laptopData[parseInt(editIdxRaw)] = { ...laptopData[parseInt(editIdxRaw)], ...newItem };
+    showToast('✅ Laptop updated!');
+  } else {
+    laptopData.unshift(newItem);
+    showToast('✅ Laptop added!');
+  }
+
+  saveLaptopStock();
+  closeLaptopModal();
+  renderTabs();
+  renderLaptopContent();
+}
+
+// ── LAPTOP BULK IMPORT (EXCEL) ──────────────────────────────────────────
+let _laptopImportParsed = [];
+
+function triggerLaptopExcelImport() {
+  if (!_isAdmin) { showToast('🔒 Admin login required'); return; }
+  _laptopImportParsed = [];
+  document.getElementById('laptopImportFileInput').value = '';
+  document.getElementById('li_status').style.display = 'none';
+  document.getElementById('li_preview').style.display = 'none';
+  document.getElementById('li_preview').innerHTML = '';
+  document.getElementById('li_confirmBtn').style.display = 'none';
+  document.getElementById('laptopImportModalOverlay').classList.add('open');
+}
+function closeLaptopImportModal() {
+  document.getElementById('laptopImportModalOverlay').classList.remove('open');
+}
+
+function downloadLaptopExcelTemplate() {
+  const build = () => {
+    const rows = [
+      ['Brand','Model Name','Spec','RAM','Storage','Purchase Price','Selling Price','Stock','Note'],
+      ['Dell','Inspiron 15 3520','i5 12th Gen, FHD, Windows 11','16GB','512GB SSD',38000,42000,3,'New'],
+      ['HP','Pavilion 14','Ryzen 5, FHD, Windows 11','8GB','256GB SSD',32000,36000,1,'Open box']
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:10},{wch:20},{wch:28},{wch:8},{wch:14},{wch:14},{wch:14},{wch:8},{wch:16}];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Laptops');
+    const blob = new Blob([XLSX.write(wb, {bookType:'xlsx', type:'array'})], {type:'application/octet-stream'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'laptop_bulk_upload_template.xlsx'; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  };
+  if (typeof XLSX === 'undefined') {
+    showToast('⏳ Loading Excel library…');
+    _loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js', build,
+      () => showToast('⚠️ Could not load Excel library'));
+  } else { build(); }
+}
+
+// Flexible header matcher — maps many possible spellings to our field keys
+const _LAPTOP_HEADER_MAP = {
+  brand: 'brand',
+  model: 'model', 'model name': 'model', modelname: 'model', laptop: 'model',
+  spec: 'spec', description: 'spec', 'spec / description': 'spec', 'spec/description': 'spec', specs: 'spec',
+  ram: 'ram', memory: 'ram',
+  storage: 'storage', ssd: 'storage', hdd: 'storage',
+  'purchase price': 'purchasePrice', purchaseprice: 'purchasePrice', cost: 'purchasePrice', 'cost price': 'purchasePrice', purchase: 'purchasePrice',
+  'selling price': 'sellingPrice', sellingprice: 'sellingPrice', price: 'sellingPrice', mrp: 'sellingPrice',
+  stock: 'stock', 'stock quantity': 'stock', qty: 'stock', quantity: 'stock',
+  note: 'note', notes: 'note', remark: 'note', remarks: 'note'
+};
+
+function handleLaptopExcelFile(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+
+  const doParse = () => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const wb = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: '', blankrows: false});
+        if (!rows.length) throw new Error('The file is empty.');
+
+        const headerRow = rows[0].map(h => String(h).trim().toLowerCase());
+        const colIdx = {};
+        headerRow.forEach((h, i) => { const key = _LAPTOP_HEADER_MAP[h]; if (key && !(key in colIdx)) colIdx[key] = i; });
+
+        if (colIdx.model === undefined) throw new Error('Could not find a "Model Name" column. Please use the template.');
+
+        const parsed = [];
+        const skipped = [];
+        for (let r = 1; r < rows.length; r++) {
+          const row = rows[r];
+          if (!row || row.every(c => String(c).trim() === '')) continue;
+          const get = key => colIdx[key] !== undefined ? String(row[colIdx[key]] ?? '').trim() : '';
+          const model = get('model');
+          const sellingPriceRaw = get('sellingPrice');
+          const sellingPrice = parseInt(String(sellingPriceRaw).replace(/[^0-9.]/g, '')) || 0;
+          if (!model || !sellingPrice) { skipped.push(`Row ${r+1}${model ? ' ('+model+')' : ''} — missing model or selling price`); continue; }
+          parsed.push({
+            brand: get('brand'),
+            model,
+            spec: get('spec'),
+            ram: get('ram'),
+            storage: get('storage'),
+            purchasePrice: parseInt(String(get('purchasePrice')).replace(/[^0-9.]/g, '')) || 0,
+            sellingPrice,
+            stock: parseInt(String(get('stock')).replace(/[^0-9.]/g, '')) || 0,
+            note: get('note'),
+            addedAt: Date.now()
+          });
+        }
+
+        _laptopImportParsed = parsed;
+        const statusEl = document.getElementById('li_status');
+        const previewEl = document.getElementById('li_preview');
+        const confirmBtn = document.getElementById('li_confirmBtn');
+
+        statusEl.style.display = 'block';
+        statusEl.innerHTML = `✅ Found <strong style="color:var(--text)">${parsed.length}</strong> valid laptop${parsed.length !== 1 ? 's' : ''}.` +
+          (skipped.length ? `<br>⚠️ Skipped ${skipped.length} row${skipped.length !== 1 ? 's' : ''}: ${skipped.slice(0,5).join('; ')}${skipped.length > 5 ? '…' : ''}` : '');
+
+        if (parsed.length) {
+          previewEl.style.display = 'block';
+          previewEl.innerHTML = parsed.slice(0, 8).map(p =>
+            `<div style="padding:8px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-size:12px">
+              <strong style="color:var(--text)">${p.brand ? p.brand + ' — ' : ''}${p.model}</strong>
+              <span style="color:var(--text3)"> · ${[p.ram, p.storage].filter(Boolean).join(', ')}</span>
+              <div style="color:var(--text2);margin-top:2px">₹${p.sellingPrice.toLocaleString('en-IN')}${p.stock ? ' · Stock: ' + p.stock : ''}</div>
+            </div>`
+          ).join('') + (parsed.length > 8 ? `<div style="font-size:12px;color:var(--text3);text-align:center;padding:4px">+ ${parsed.length - 8} more…</div>` : '');
+          confirmBtn.style.display = 'block';
+          confirmBtn.textContent = `Add All ${parsed.length} to Stock`;
+        } else {
+          previewEl.style.display = 'none';
+          confirmBtn.style.display = 'none';
+        }
+      } catch (err) {
+        document.getElementById('li_status').style.display = 'block';
+        document.getElementById('li_status').innerHTML = `⚠️ ${err.message}`;
+        document.getElementById('li_preview').style.display = 'none';
+        document.getElementById('li_confirmBtn').style.display = 'none';
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  if (typeof XLSX === 'undefined') {
+    showToast('⏳ Loading Excel library…');
+    _loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js', doParse,
+      () => showToast('⚠️ Could not load Excel library'));
+  } else {
+    doParse();
+  }
+}
+
+function confirmLaptopExcelImport() {
+  if (!_isAdmin) { showToast('🔒 Admin login required'); return; }
+  if (!_laptopImportParsed.length) return;
+  laptopData = _laptopImportParsed.concat(laptopData);
+  saveLaptopStock();
+  showToast(`✅ Imported ${_laptopImportParsed.length} laptop${_laptopImportParsed.length !== 1 ? 's' : ''}!`);
+  _laptopImportParsed = [];
+  closeLaptopImportModal();
+  renderTabs();
+  renderLaptopContent();
 }
 
 // ── RESALE FILTER STATE ────────────────────────────────────────────────
@@ -2796,11 +3260,16 @@ function renderTabs() {
     🔄 Resale <span class="tab-count">${resaleData.length}</span>
   </button>`;
 
-  el.innerHTML = resaleTab + normalTabs;
+  const laptopActive = isLaptopTab;
+  const laptopTab = `<button class="tab tab-laptop ${laptopActive ? 'active' : ''}" onclick="switchToLaptop()">
+    💻 Laptop Stock <span class="tab-count">${laptopData.length}</span>
+  </button>`;
+
+  el.innerHTML = resaleTab + laptopTab + normalTabs;
 
   // Stock summary bar
   const stockBar = document.getElementById('stockSummaryBar');
-  if (stockBar && !isResaleTab) {
+  if (stockBar && !isResaleTab && !isLaptopTab) {
     stockBar.innerHTML = Object.entries(categoryMeta).map(([k, v]) => {
       const qty = getTotalStock(k);
       const active = currentCategory === k && filterStockOnly;
@@ -2809,7 +3278,7 @@ function renderTabs() {
         <span class="stock-summary-qty ${qty > 0 ? 'stock-has' : ''}">${qty} units</span>
       </div>`;
     }).join('');
-  } else if (stockBar && isResaleTab) {
+  } else if (stockBar && (isResaleTab || isLaptopTab)) {
     stockBar.innerHTML = '';
   }
 }
@@ -3625,13 +4094,15 @@ window.addEventListener('offline',()=>{ fbDot('error'); showToast('📵 Offline'
 window.addEventListener('load', () => {
   loadFromLocal();       // Show local data instantly
   loadResaleFromLocal(); // Load resale data
+  loadLaptopFromLocal(); // Load laptop stock data (separate, non-Apple)
 
   // Restore last active tab
   try {
     const savedTab = localStorage.getItem('_activeTab');
-    if (savedTab === 'RESALE') {
-      // Will call switchToResale() after initRender sets up DOM
+    if (savedTab === 'RESALE' || savedTab === 'LAPTOP') {
+      // Will call switchToResale()/switchToLaptop() after initRender sets up DOM
       isResaleTab = false; // let initRender run normally first
+      isLaptopTab = false;
     } else if (savedTab && ['IPHONE','IPAD','MACBOOK'].includes(savedTab)) {
       currentCategory = savedTab;
     }
@@ -3639,11 +4110,13 @@ window.addEventListener('load', () => {
 
   initRender();
 
-  // After DOM is ready, switch to resale if that was the last tab
+  // After DOM is ready, switch to resale/laptop if that was the last tab
   try {
     const savedTab = localStorage.getItem('_activeTab');
     if (savedTab === 'RESALE') {
       switchToResale();
+    } else if (savedTab === 'LAPTOP') {
+      switchToLaptop();
     }
   } catch(e) {}
 
@@ -3721,8 +4194,14 @@ function _setAdminMode(on, persist) {
   if (impMacFab) impMacFab.style.display = on ? 'flex' : 'none';
   const impIphFab = document.getElementById('importIphoneResaleFab');
   if (impIphFab) impIphFab.style.display = on ? 'flex' : 'none';
-  // Re-render resale cards if resale tab is active (to show/hide edit button)
+  // Refresh laptop FAB visibility
+  const laptopFab = document.getElementById('laptopFab');
+  if (laptopFab) laptopFab.style.display = on ? 'flex' : 'none';
+  const laptopImpFab = document.getElementById('laptopImportFab');
+  if (laptopImpFab) laptopImpFab.style.display = on ? 'flex' : 'none';
+  // Re-render resale/laptop cards if that tab is active (to show/hide edit button)
   if (isResaleTab) renderResaleContent();
+  if (isLaptopTab) renderLaptopContent();
   // Show/hide segment editor depending on admin state
   renderSegEditor();
 }
@@ -3814,6 +4293,84 @@ document.addEventListener('click', function(e) {
     </div>
     <div id="rf_error" style="color:#FF453A;font-size:13px;margin-top:8px;display:none"></div>
     <button class="btn-submit" style="background:linear-gradient(135deg,#7c3aed,#a855f7);margin-top:20px" onclick="submitResaleProduct()">Add Resale Item</button>
+  </div>
+</div>
+
+<!-- Laptop Stock Modal (separate, non-Apple laptops) -->
+<div class="modal-overlay" id="laptopModalOverlay" onclick="if(event.target===this)closeLaptopModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">💻 Add Laptop</div>
+      <button class="modal-close" onclick="closeLaptopModal()">&#x2715;</button>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row">
+        <label>Brand</label>
+        <input type="text" id="lf_brand" placeholder="e.g. Dell, HP, Lenovo, Asus" autocomplete="off" />
+      </div>
+      <div class="form-row">
+        <label>Model Name *</label>
+        <input type="text" id="lf_model" placeholder="e.g. Inspiron 15 3520" />
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Spec / Description</label>
+      <input type="text" id="lf_spec" placeholder="e.g. i5 12th Gen, FHD, Windows 11" />
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row">
+        <label>RAM</label>
+        <input type="text" id="lf_ram" placeholder="e.g. 16GB" />
+      </div>
+      <div class="form-row">
+        <label>Storage</label>
+        <input type="text" id="lf_storage" placeholder="e.g. 512GB SSD" />
+      </div>
+    </div>
+    <div class="laptop-section-label">Pricing &amp; Stock</div>
+    <div class="form-grid-2">
+      <div class="form-row">
+        <label>Purchase Price (&#8377;)</label>
+        <input type="number" id="lf_purchasePrice" placeholder="e.g. 38000" />
+      </div>
+      <div class="form-row">
+        <label>Selling Price (&#8377;) *</label>
+        <input type="number" id="lf_sellingPrice" placeholder="e.g. 42000" />
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Stock Quantity</label>
+      <input type="number" id="lf_stock" placeholder="e.g. 3" min="0" />
+    </div>
+    <div class="form-row">
+      <label>Note</label>
+      <input type="text" id="lf_note" placeholder="e.g. New / open box / 1 unit sold" />
+    </div>
+    <div id="lf_error" style="color:#FF453A;font-size:13px;margin-top:8px;display:none"></div>
+    <button class="btn-submit" style="background:linear-gradient(135deg,#0d9488,#14b8a6);margin-top:20px" onclick="submitLaptopProduct()">Add Laptop</button>
+  </div>
+</div>
+
+<!-- Laptop Bulk Import (Excel) Modal -->
+<div class="modal-overlay" id="laptopImportModalOverlay" onclick="if(event.target===this)closeLaptopImportModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📥 Import Laptops from Excel</div>
+      <button class="modal-close" onclick="closeLaptopImportModal()">&#x2715;</button>
+    </div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:16px;line-height:1.7">
+      Upload an .xlsx / .csv file to add many laptops at once. Columns can be in any order — just use these header names in row 1:
+      <br><strong style="color:var(--text2)">Brand, Model Name, Spec, RAM, Storage, Purchase Price, Selling Price, Stock, Note</strong>
+    </p>
+    <button onclick="downloadLaptopExcelTemplate()" style="width:100%;padding:10px;margin-bottom:12px;background:none;border:1px solid var(--border);border-radius:10px;color:var(--text2);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg>
+      Download Sample Template
+    </button>
+    <input type="file" id="laptopImportFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleLaptopExcelFile(event)" />
+    <button onclick="document.getElementById('laptopImportFileInput').click()" class="btn-submit" style="background:linear-gradient(135deg,#6366f1,#818cf8);margin-top:4px">Choose Excel File</button>
+    <div id="li_status" style="font-size:12px;color:var(--text3);margin-top:12px;display:none;line-height:1.6"></div>
+    <div id="li_preview" style="max-height:220px;overflow-y:auto;margin-top:10px;display:none"></div>
+    <button id="li_confirmBtn" class="btn-submit" style="background:linear-gradient(135deg,#0d9488,#14b8a6);margin-top:14px;display:none" onclick="confirmLaptopExcelImport()">Add All to Stock</button>
   </div>
 </div>
 
