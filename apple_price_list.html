@@ -1439,10 +1439,17 @@
     border-radius: 20px;
     letter-spacing: 0.5px;
     text-transform: uppercase;
-    position: absolute;
-    top: 14px;
-    right: 14px;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
+  .laptop-top-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .laptop-top-row .laptop-model { margin-bottom: 0; }
   .laptop-fab {
     background: linear-gradient(135deg, #0d9488, #14b8a6) !important;
     box-shadow: 0 4px 20px rgba(20,184,166,0.45) !important;
@@ -2332,8 +2339,10 @@ function renderLaptopContent() {
     const inStock = item.stock > 0;
     return `
     <div class="laptop-card" id="lcard-${idx}">
-      <span class="laptop-badge">💻 ${inStock ? item.stock + ' IN STOCK' : 'OUT OF STOCK'}</span>
-      <div class="laptop-model">${item.brand ? item.brand + ' — ' : ''}${item.model}</div>
+      <div class="laptop-top-row">
+        <div class="laptop-model">${item.brand ? item.brand + ' — ' : ''}${item.model}</div>
+        <span class="laptop-badge">💻 ${inStock ? item.stock + ' IN STOCK' : 'OUT OF STOCK'}</span>
+      </div>
       ${metaParts.length ? `<div class="laptop-meta">${metaParts.join(' · ')}</div>` : ''}
       ${item.note ? `<div class="laptop-meta">${item.note}</div>` : ''}
       <div class="laptop-stock-row ${inStock ? 'in-stock' : 'out-stock'}">
