@@ -1412,7 +1412,49 @@
     overflow: hidden;
     transition: all 0.25s;
   }
+  .laptop-card.priority { border-color: rgba(255,184,0,0.55); box-shadow: 0 0 0 1px rgba(255,184,0,0.15) inset; }
   .laptop-card:hover { border-color: rgba(20,184,166,0.5); transform: translateY(-1px); box-shadow: 0 6px 24px rgba(20,184,166,0.12); }
+  .laptop-card.priority:hover { border-color: rgba(255,184,0,0.8); box-shadow: 0 6px 24px rgba(255,184,0,0.18); }
+  .laptop-priority-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(255,184,0,0.12); border: 1px solid rgba(255,184,0,0.35);
+    color: #d19400; font-size: 10px; font-weight: 700; padding: 2px 8px;
+    border-radius: 20px; letter-spacing: 0.3px; text-transform: uppercase; margin-bottom: 6px;
+  }
+  .laptop-star-btn {
+    background: none; border: 1px solid var(--border); cursor: pointer;
+    width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center;
+    justify-content: center; font-size: 15px; flex-shrink: 0; transition: all 0.15s; padding: 0;
+  }
+  .laptop-star-btn.active { background: rgba(255,184,0,0.14); border-color: rgba(255,184,0,0.5); }
+  .laptop-star-btn:hover { border-color: rgba(255,184,0,0.6); }
+  .laptop-view-toggle {
+    display: inline-flex; border: 1px solid var(--border); border-radius: 9px; overflow: hidden; flex-shrink: 0;
+  }
+  .laptop-view-btn {
+    background: var(--surface); border: none; cursor: pointer; padding: 6px 11px;
+    font-size: 13px; color: var(--text3); display: flex; align-items: center; font-family: var(--font);
+  }
+  .laptop-view-btn.active { background: rgba(20,184,166,0.14); color: #14b8a6; }
+  .laptop-view-btn:not(:last-child) { border-right: 1px solid var(--border); }
+  .laptop-summary-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .laptop-list-row {
+    display: flex; align-items: center; gap: 14px; background: var(--surface);
+    border: 1px solid rgba(20,184,166,0.25); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
+  }
+  .laptop-list-row.priority { border-color: rgba(255,184,0,0.55); }
+  .laptop-list-row .llr-main { flex: 1; min-width: 0; }
+  .laptop-list-row .llr-model { font-size: 13.5px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .laptop-list-row .llr-meta { font-size: 11px; color: var(--text3); }
+  .laptop-list-row .llr-prices { text-align: right; flex-shrink: 0; }
+  .laptop-list-row .llr-sell { font-size: 15px; font-weight: 700; color: #14b8a6; }
+  .laptop-list-row .llr-stock { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; flex-shrink: 0; white-space: nowrap; }
+  .laptop-list-row .llr-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .laptop-list { display: flex; flex-direction: column; }
+  @media (max-width: 640px) {
+    .laptop-list-row { flex-wrap: wrap; }
+    .laptop-list-row .llr-main { min-width: 55%; }
+  }
   .laptop-model { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; line-height: 1.3; }
   .laptop-meta { font-size: 11.5px; color: var(--text3); margin-bottom: 12px; }
   .laptop-divider { height: 1px; background: rgba(20,184,166,0.15); margin: 12px 0; }
@@ -1785,6 +1827,7 @@ let filterMin = '';
 let filterMax = '';
 let filterModel = '';
 let laptopFilterBrand = '';
+let laptopViewMode = (function(){ try { return localStorage.getItem('_laptopViewMode') || 'grid'; } catch(e){ return 'grid'; } })();
 let filterStock = '';
 let filterStockOnly = false;
 
@@ -2309,6 +2352,8 @@ function renderLaptopContent() {
       return haystack.includes(q);
     });
   }
+  // Priority laptops float to the top; stable within each group
+  items.sort((a, b) => (b.item.priority ? 1 : 0) - (a.item.priority ? 1 : 0));
 
   const filterBar = brands.length ? `
     <div class="laptop-filter-row">
@@ -2317,10 +2362,17 @@ function renderLaptopContent() {
       ${brands.map(b => `<button class="chip${laptopFilterBrand === b ? ' active' : ''}" onclick="setLaptopBrandFilter('${b.replace(/'/g,"\\'")}')">${b}</button>`).join('')}
     </div>` : '';
 
+  const viewToggle = `
+    <div class="laptop-view-toggle">
+      <button class="laptop-view-btn${laptopViewMode === 'grid' ? ' active' : ''}" onclick="setLaptopViewMode('grid')" title="Grid view">▦ Grid</button>
+      <button class="laptop-view-btn${laptopViewMode === 'list' ? ' active' : ''}" onclick="setLaptopViewMode('list')" title="List view">☰ List</button>
+    </div>`;
+
   if (!items.length) {
     area.innerHTML = `
-      <div style="margin-bottom:16px">
+      <div class="laptop-summary-row">
         <span style="font-size:12px;color:var(--text3)">${laptopData.length} laptop${laptopData.length !== 1 ? 's' : ''} in stock &mdash; separate from Apple products &amp; resale</span>
+        ${viewToggle}
       </div>
       ${laptopSearchBar}
       ${filterBar}
@@ -2333,12 +2385,13 @@ function renderLaptopContent() {
     return;
   }
 
-  const cards = items.map(({item, idx}) => {
+  const gridCards = items.map(({item, idx}) => {
     const metaParts = [item.spec, item.ram ? item.ram + ' RAM' : '', item.storage].filter(Boolean);
     const profit = (item.sellingPrice && item.purchasePrice) ? (item.sellingPrice - item.purchasePrice) : null;
     const inStock = item.stock > 0;
     return `
-    <div class="laptop-card" id="lcard-${idx}">
+    <div class="laptop-card${item.priority ? ' priority' : ''}" id="lcard-${idx}">
+      ${item.priority ? `<div class="laptop-priority-tag">⭐ Priority</div>` : ''}
       <div class="laptop-top-row">
         <div class="laptop-model">${item.brand ? item.brand + ' — ' : ''}${item.model}</div>
         <span class="laptop-badge">💻 ${inStock ? item.stock + ' IN STOCK' : 'OUT OF STOCK'}</span>
@@ -2361,21 +2414,58 @@ function renderLaptopContent() {
         </span>
       </div>` : ''}
       <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+        <button class="laptop-star-btn${item.priority ? ' active' : ''}" onclick="toggleLaptopPriority(${idx})" title="${item.priority ? 'Remove priority' : 'Mark as priority'}">${item.priority ? '⭐' : '☆'}</button>
         ${_isAdmin ? `<button onclick="openLaptopModal(${idx})" style="flex:1;padding:7px 0;border-radius:9px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;border:1px solid rgba(20,184,166,0.25);background:rgba(20,184,166,0.12);color:#14b8a6">✏️ Edit</button>
         <button onclick="confirmDeleteLaptop(${idx})" style="flex:1;padding:7px 0;border-radius:9px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;border:1px solid rgba(255,59,48,0.3);background:rgba(255,59,48,0.1);color:#ff453a">🗑 Delete</button>` : ''}
       </div>
     </div>`;
   }).join('');
 
+  const listRows = items.map(({item, idx}) => {
+    const metaParts = [item.brand, item.spec, item.ram ? item.ram + ' RAM' : '', item.storage].filter(Boolean);
+    const inStock = item.stock > 0;
+    return `
+    <div class="laptop-list-row${item.priority ? ' priority' : ''}" id="llrow-${idx}">
+      <button class="laptop-star-btn${item.priority ? ' active' : ''}" onclick="toggleLaptopPriority(${idx})" title="${item.priority ? 'Remove priority' : 'Mark as priority'}">${item.priority ? '⭐' : '☆'}</button>
+      <div class="llr-main">
+        <div class="llr-model">${item.priority ? '⭐ ' : ''}${item.model}</div>
+        <div class="llr-meta">${metaParts.join(' · ')}</div>
+      </div>
+      <span class="llr-stock" style="${inStock ? 'background:rgba(48,209,88,0.12);color:#30D158;border:1px solid rgba(48,209,88,0.3)' : 'background:rgba(255,69,58,0.1);color:#ff453a;border:1px solid rgba(255,59,48,0.3)'}">${inStock ? item.stock + ' unit' + (item.stock !== 1 ? 's' : '') : 'OUT'}</span>
+      <div class="llr-prices">
+        <div class="llr-sell">${fmt(item.sellingPrice || 0)}</div>
+        ${item.purchasePrice ? `<div style="font-size:10.5px;color:var(--text3)">was ${fmt(item.purchasePrice)}</div>` : ''}
+      </div>
+      <div class="llr-actions">
+        ${_isAdmin ? `<button onclick="openLaptopModal(${idx})" style="padding:7px 10px;border-radius:8px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;border:1px solid rgba(20,184,166,0.25);background:rgba(20,184,166,0.12);color:#14b8a6">✏️</button>
+        <button onclick="confirmDeleteLaptop(${idx})" style="padding:7px 10px;border-radius:8px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;border:1px solid rgba(255,59,48,0.3);background:rgba(255,59,48,0.1);color:#ff453a">🗑</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
   area.innerHTML = `
-    <div style="margin-bottom:16px">
+    <div class="laptop-summary-row">
       <span style="font-size:12px;color:var(--text3)">${items.length} of ${laptopData.length} laptop${laptopData.length !== 1 ? 's' : ''} shown &mdash; separate from Apple products &amp; resale</span>
+      ${viewToggle}
     </div>
     ${laptopSearchBar}
     ${filterBar}
-    <div class="grid">${cards}</div>
+    ${laptopViewMode === 'list' ? `<div class="laptop-list">${listRows}</div>` : `<div class="grid">${gridCards}</div>`}
   `;
   focusLaptopSearch();
+}
+
+function setLaptopViewMode(mode) {
+  laptopViewMode = mode;
+  try { localStorage.setItem('_laptopViewMode', mode); } catch(e) {}
+  renderLaptopContent();
+}
+
+function toggleLaptopPriority(idx) {
+  if (!laptopData[idx]) return;
+  laptopData[idx].priority = !laptopData[idx].priority;
+  saveLaptopStock();
+  renderLaptopContent();
 }
 
 // Keep focus + cursor position in the laptop search box across re-renders
