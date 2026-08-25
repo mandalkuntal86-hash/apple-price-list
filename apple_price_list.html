@@ -4012,6 +4012,7 @@ async function fbSave() {
     const clean = JSON.parse(JSON.stringify(data,(k,v)=>v===undefined?null:v));
     clean._by = _fbDev; clean._at = Date.now();
     clean._resale = JSON.parse(JSON.stringify(resaleData,(k,v)=>v===undefined?null:v));
+    clean._laptop = JSON.parse(JSON.stringify(laptopData,(k,v)=>v===undefined?null:v));
     await _fbDb.collection('pricelist').doc('main').set(clean);
     fbDot('saved');
     saveToLocal();
@@ -4066,9 +4067,11 @@ async function fbInit() {
         const d=snap.data();
         if (d&&d.IPHONE) {
           const d2={...d}; delete d2._by; delete d2._at;
+          if (Array.isArray(d2._laptop)) { laptopData = d2._laptop; delete d2._laptop; try{ localStorage.setItem('_laptopData', JSON.stringify(laptopData)); }catch(e){} }
           fbNorm(d2); Object.assign(data,d2); saveToLocal();
           renderTabs();
           if (isResaleTab) renderResaleContent();
+          else if (isLaptopTab) renderLaptopContent();
           else { renderSubfilters(); renderContent(); }
           fbDot('connected');
         }
@@ -4080,9 +4083,11 @@ async function fbInit() {
       const d=snap.data();
       if (!d||!d.IPHONE||d._by===_fbDev) return;
       const c2={...d}; delete c2._by; delete c2._at;
+      if (Array.isArray(c2._laptop)) { laptopData = c2._laptop; delete c2._laptop; try{ localStorage.setItem('_laptopData', JSON.stringify(laptopData)); }catch(e){} }
       fbNorm(c2); Object.assign(data,c2); saveToLocal();
       renderTabs();
       if (isResaleTab) renderResaleContent();
+      else if (isLaptopTab) renderLaptopContent();
       else { renderSubfilters(); renderContent(); }
       fbDot('connected');
       showToast('📲 Synced from another device');
@@ -4100,10 +4105,14 @@ function fbStartHb() {
         if (d&&d.IPHONE&&d._by!==_fbDev) {
           const tot=(d.IPHONE||[]).length+(d.IPAD||[]).length+(d.MACBOOK||[]).length;
           const loc=data.IPHONE.length+data.IPAD.length+data.MACBOOK.length;
-          if (tot!==loc){
+          const laptopLoc = laptopData.length;
+          const laptopTot = Array.isArray(d._laptop) ? d._laptop.length : laptopLoc;
+          if (tot!==loc || laptopTot!==laptopLoc){
             const d2={...d}; delete d2._by; delete d2._at;
+            if (Array.isArray(d2._laptop)) { laptopData = d2._laptop; delete d2._laptop; try{ localStorage.setItem('_laptopData', JSON.stringify(laptopData)); }catch(e){} }
             fbNorm(d2); Object.assign(data,d2); saveToLocal();
-            renderTabs(); renderSubfilters(); renderContent();
+            renderTabs();
+            if (isLaptopTab) renderLaptopContent(); else { renderSubfilters(); renderContent(); }
           }
         }
       }).catch(()=>{});
@@ -4118,9 +4127,11 @@ document.addEventListener('visibilitychange',()=>{
         const d=snap.data();
         if (d&&d.IPHONE&&d._by!==_fbDev) {
           const d2={...d}; delete d2._by; delete d2._at;
+          if (Array.isArray(d2._laptop)) { laptopData = d2._laptop; delete d2._laptop; try{ localStorage.setItem('_laptopData', JSON.stringify(laptopData)); }catch(e){} }
           fbNorm(d2); Object.assign(data,d2); saveToLocal();
           renderTabs();
           if (isResaleTab) renderResaleContent();
+          else if (isLaptopTab) renderLaptopContent();
           else { renderSubfilters(); renderContent(); }
         }
       }
