@@ -2281,6 +2281,16 @@ function renderLaptopContent() {
 
   // Search across every field ("search by anything") + brand filter
   const q = (searchQuery || '').toLowerCase();
+  const searchValEsc = (searchQuery || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  const laptopSearchBar = `
+    <div class="laptop-search-row" style="margin-bottom:14px">
+      <div style="position:relative;max-width:420px">
+        <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;pointer-events:none">🔍</span>
+        <input type="text" id="laptopSearchInput" value="${searchValEsc}" placeholder="Search brand, model, spec, RAM, storage…"
+          oninput="setLaptopSearch(this.value)"
+          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 12px 9px 34px;font-size:13px;font-family:var(--font);color:var(--text);outline:none" />
+      </div>
+    </div>`;
   let items = laptopData.map((item, idx) => ({ item, idx }));
   if (laptopFilterBrand) {
     items = items.filter(({item}) => (item.brand || '').trim() === laptopFilterBrand);
@@ -2305,12 +2315,14 @@ function renderLaptopContent() {
       <div style="margin-bottom:16px">
         <span style="font-size:12px;color:var(--text3)">${laptopData.length} laptop${laptopData.length !== 1 ? 's' : ''} in stock &mdash; separate from Apple products &amp; resale</span>
       </div>
+      ${laptopSearchBar}
       ${filterBar}
       <div class="laptop-empty">
         <div class="laptop-empty-icon">🔍</div>
         <h3>No matches</h3>
         <p>No laptops match your search or brand filter.</p>
       </div>`;
+    focusLaptopSearch();
     return;
   }
 
@@ -2350,9 +2362,29 @@ function renderLaptopContent() {
     <div style="margin-bottom:16px">
       <span style="font-size:12px;color:var(--text3)">${items.length} of ${laptopData.length} laptop${laptopData.length !== 1 ? 's' : ''} shown &mdash; separate from Apple products &amp; resale</span>
     </div>
+    ${laptopSearchBar}
     ${filterBar}
     <div class="grid">${cards}</div>
   `;
+  focusLaptopSearch();
+}
+
+// Keep focus + cursor position in the laptop search box across re-renders
+let _laptopSearchWasFocused = false;
+function focusLaptopSearch() {
+  const el = document.getElementById('laptopSearchInput');
+  if (el && _laptopSearchWasFocused) {
+    el.focus();
+    const len = el.value.length;
+    el.setSelectionRange(len, len);
+  }
+}
+function setLaptopSearch(v) {
+  searchQuery = v;
+  _laptopSearchWasFocused = true;
+  const headerSearchEl = document.getElementById('search');
+  if (headerSearchEl) headerSearchEl.value = v;
+  renderLaptopContent();
 }
 
 function setLaptopBrandFilter(brand) {
@@ -3527,7 +3559,10 @@ function renderTable(items) {
 // Search
 document.getElementById('search').addEventListener('input', e => {
   searchQuery = e.target.value.trim();
-  if (isLaptopTab) { renderLaptopContent(); } else { renderContent(); }
+  if (isLaptopTab) {
+    _laptopSearchWasFocused = false;
+    renderLaptopContent();
+  } else { renderContent(); }
 });
 
 // ── MODAL ──────────────────────────────────────────────────────────────
