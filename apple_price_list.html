@@ -2608,27 +2608,42 @@ function closeLaptopImportModal() {
   document.getElementById('laptopImportModalOverlay').classList.remove('open');
 }
 
+function _saveBlobFile(blob, filename) {
+  // IE/old Edge
+  if (window.navigator && window.navigator.msSaveOrOpenBlob) { window.navigator.msSaveOrOpenBlob(blob, filename); return; }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.style.display = 'none';
+  document.body.appendChild(a);   // must be in DOM for Firefox / some mobile browsers
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 4000);
+}
+
 function downloadLaptopExcelTemplate() {
+  const rows = [
+    ['Brand','Model Name','Spec','RAM','Storage','Purchase Price','Selling Price','Stock','Note'],
+    ['Dell','Inspiron 15 3520','i5 12th Gen, FHD, Windows 11','16GB','512GB SSD',38000,42000,3,'New'],
+    ['HP','Pavilion 14','Ryzen 5, FHD, Windows 11','8GB','256GB SSD',32000,36000,1,'Open box']
+  ];
+  // CSV fallback — works even if the Excel library cannot load (offline / blocked CDN)
+  const downloadCsv = () => {
+    const csv = '\uFEFF' + rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\r\n');
+    _saveBlobFile(new Blob([csv], {type: 'text/csv;charset=utf-8'}), 'laptop_bulk_upload_template.csv');
+    showToast('⬇️ Template downloaded (CSV)');
+  };
   const build = () => {
-    const rows = [
-      ['Brand','Model Name','Spec','RAM','Storage','Purchase Price','Selling Price','Stock','Note'],
-      ['Dell','Inspiron 15 3520','i5 12th Gen, FHD, Windows 11','16GB','512GB SSD',38000,42000,3,'New'],
-      ['HP','Pavilion 14','Ryzen 5, FHD, Windows 11','8GB','256GB SSD',32000,36000,1,'Open box']
-    ];
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols'] = [{wch:10},{wch:20},{wch:28},{wch:8},{wch:14},{wch:14},{wch:14},{wch:8},{wch:16}];
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Laptops');
-    const blob = new Blob([XLSX.write(wb, {bookType:'xlsx', type:'array'})], {type:'application/octet-stream'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'laptop_bulk_upload_template.xlsx'; a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    try {
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols'] = [{wch:10},{wch:20},{wch:28},{wch:8},{wch:14},{wch:14},{wch:14},{wch:8},{wch:16}];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Laptops');
+      const out = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+      _saveBlobFile(new Blob([out], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), 'laptop_bulk_upload_template.xlsx');
+      showToast('⬇️ Template downloaded');
+    } catch (e) { console.error(e); downloadCsv(); }
   };
   if (typeof XLSX === 'undefined') {
-    showToast('⏳ Loading Excel library…');
-    _loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js', build,
-      () => showToast('⚠️ Could not load Excel library'));
+    _loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js', build, downloadCsv);
   } else { build(); }
 }
 
@@ -2734,9 +2749,21 @@ function handleLaptopExcelFile(evt) {
 function confirmLaptopExcelImport() {
   if (!_isAdmin) { showToast('🔒 Admin login required'); return; }
   if (!_laptopImportParsed.length) return;
-  laptopData = _laptopImportParsed.concat(laptopData);
+  // Existing stock is NEVER changed — imported rows are only ADDED.
+  // A row identical to an existing item (brand+model+spec+RAM+storage) is skipped so stock is not duplicated.
+  const _k = x => [x.brand, x.model, x.spec, x.ram, x.storage].map(v => String(v||'').trim().toLowerCase()).join('|');
+  const existingKeys = new Set(laptopData.map(_k));
+  const toAdd = [];
+  let dup = 0;
+  _laptopImportParsed.forEach(it => {
+    const k = _k(it);
+    if (existingKeys.has(k)) { dup++; return; }
+    existingKeys.add(k); toAdd.push(it);
+  });
+  if (!toAdd.length) { showToast(`ℹ️ Nothing new — all ${dup} already in stock (kept unchanged)`); return; }
+  laptopData = laptopData.concat(toAdd);   // old items stay first, new ones appended
   saveLaptopStock();
-  showToast(`✅ Imported ${_laptopImportParsed.length} laptop${_laptopImportParsed.length !== 1 ? 's' : ''}!`);
+  showToast(`✅ Added ${toAdd.length} new laptop${toAdd.length !== 1 ? 's' : ''}` + (dup ? `, ${dup} already existed (unchanged)` : '') + '. Previous stock kept.');
   _laptopImportParsed = [];
   closeLaptopImportModal();
   renderTabs();
